@@ -1,12 +1,28 @@
-plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.2.71'
-    id 'org.springframework.boot' version '2.0.5.RELEASE'
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.21.1"
+    }
 }
 
-apply plugin: 'io.spring.dependency-management'
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '1.3.50'
+    id 'org.jetbrains.dokka' version '0.9.18'
+    id 'com.jfrog.bintray' version '1.8.4'
+}
 
-group 'org.denis'
-version '1.0-SNAPSHOT'
+apply plugin: 'io.codearte.nexus-staging'
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+if (!System.getenv('CI_ENV')) {
+    apply plugin: 'signing'
+}
+
+group 'tech.harmonysoft'
+version '1.0.0'
+archivesBaseName = 'kotlin-baker'
 
 ext {
     junitVersion = "5.5.2"
@@ -15,7 +31,9 @@ ext {
 sourceCompatibility = 1.8
 
 repositories {
+    mavenLocal()
     mavenCentral()
+    jcenter()
 }
 
 dependencies {
@@ -37,4 +55,110 @@ compileTestKotlin {
 
 test {
     useJUnitPlatform()
+}
+
+task dokkaJavadoc(type: org.jetbrains.dokka.gradle.DokkaTask) {
+    outputFormat = "javadoc"
+    outputDirectory = "$buildDir/dokkaJavadoc"
+}
+
+task kotlindocJar(type: Jar, dependsOn: dokkaJavadoc) {
+    archiveClassifier.set('javadoc')
+    from "$buildDir/dokkaJavadoc"
+}
+
+task sourceJar(type: Jar) {
+    archiveClassifier.set('sources')
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    add("archives", kotlindocJar)
+    add("archives", sourceJar)
+}
+
+if (!System.getenv('CI_ENV')) {
+    signing {
+        sign configurations.archives
+    }
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            if (!System.getenv('CI_ENV')) {
+                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+            }
+
+            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            pom.project {
+                packaging 'jar'
+
+                name 'Kotlin-Baker'
+                description 'A library which facilitates Kotlin objects creation from properties'
+                url 'http://kotlin-baker.oss.harmonysoft.tech/'
+
+                scm {
+                    connection 'scm:git:git://github.com/denis-zhdanov/kotlin-baker.git'
+                    developerConnection 'scm:git:git://github.com/denis-zhdanov/kotlin-baker.git'
+                    url 'https://github.com/denis-zhdanov/kotlin-baker'
+                }
+
+                licenses {
+                    license {
+                        name 'The MIT License (MIT)'
+                        url 'http://opensource.org/licenses/MIT'
+                        distribution 'repo'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'denis'
+                        name 'Denis Zhdanov'
+                        email 'denzhdanov@gmail.com'
+                    }
+                }
+            }
+        }
+    }
+}
+
+publishing {
+    publications {
+        MyPublication(MavenPublication) {
+            from components.java
+            artifact kotlindocJar
+            artifact sourceJar
+            groupId 'tech.harmonysoft'
+            artifactId archivesBaseName
+            version version
+        }
+    }
+}
+
+bintray {
+    user = bintrayUser
+    key = bintrayApiKey
+    publications = ['MyPublication']
+
+    pkg {
+
+        repo = 'harmonysoft.tech'
+        name = archivesBaseName
+        licenses = ['MIT']
+        vcsUrl = 'https://github.com/denis-zhdanov/kotlin-baker.git'
+
+        version {
+            name = version
+            released  = new Date()
+        }
+    }
 }
