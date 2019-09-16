@@ -1,0 +1,17 @@
+language: java
+
+sudo: false
+
+env:
+  - CI_ENV=true ORG_GRADLE_PROJECT_ossrhUsername=dummy ORG_GRADLE_PROJECT_ossrhPassword=dummy ORG_GRADLE_PROJECT_bintrayUser=dummy ORG_GRADLE_PROJECT_bintrayApiKey=dummy
+
+before_cache:
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+
+jdk:
+  - oraclejdk8
