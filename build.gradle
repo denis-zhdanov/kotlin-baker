@@ -58,8 +58,10 @@ test {
 }
 
 task dokkaJavadoc(type: org.jetbrains.dokka.gradle.DokkaTask) {
-    outputFormat = "javadoc"
+    outputFormat = 'javadoc'
     outputDirectory = "$buildDir/dokkaJavadoc"
+    noStdlibLink = false
+    noJdkLink = false
 }
 
 task kotlindocJar(type: Jar, dependsOn: dokkaJavadoc) {
