@@ -99,7 +99,7 @@ interface Context {
      *
      * This method exposes keys configured for the target type (if any).
      */
-    fun getMapKeys(keyType: KType): Iterable<String>
+    fun getMapKeys(mapPropertyName: String, keyType: KType): Set<String>
 
     /**
      * A strategy for building map value property names, e.g. if we have a declaration like
@@ -195,7 +195,7 @@ interface Context {
          *
          * [ContextBuilderImpl.DEFAULT_MAP_KEY_STRATEGY] is used by default.
          */
-        fun withMapKeyStrategy(strategy: (KType) -> Iterable<String>): Builder
+        fun withMapKeyStrategy(strategy: (String, KType) -> Set<String>): Builder
 
         /**
          * Strategy for map value property name strategy (see [Context.getMapValuePropertyName]).

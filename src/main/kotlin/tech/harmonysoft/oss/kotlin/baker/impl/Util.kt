@@ -15,12 +15,12 @@ inline fun <T, R> Iterable<T>.mapFirstNotNull(transform: (T) -> R): R? {
     return null
 }
 
-inline fun <reified T : Enum<T>> enumKeyProducer(): (KType) -> Iterable<String> {
+inline fun <reified T : Enum<T>> enumKeyProducer(): (KType) -> Set<String> {
     return { type ->
         if (type.classifier == T::class) {
-            enumValues<T>().map { it.name }
+            enumValues<T>().map { it.name }.toSet()
         } else {
-            emptyList()
+            emptySet()
         }
     }
 }

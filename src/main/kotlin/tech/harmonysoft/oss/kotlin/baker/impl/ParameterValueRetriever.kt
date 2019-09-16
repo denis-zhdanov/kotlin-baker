@@ -143,7 +143,7 @@ class ParameterValueRetriever(val parameter: KParameter) {
                 "Failed instantiating a Map property '$propertyName' - can't derive value class for $parameter"
         )
         val map = context.createMap()
-        for (key in context.getMapKeys(keyType)) {
+        for (key in context.getMapKeys(propertyName, keyType)) {
             val valuePropertyName = context.getMapValuePropertyName(propertyName, key)
             if (context.isSimpleType(valueClass)) {
                 val rawValue = context.getPropertyValue(valuePropertyName)

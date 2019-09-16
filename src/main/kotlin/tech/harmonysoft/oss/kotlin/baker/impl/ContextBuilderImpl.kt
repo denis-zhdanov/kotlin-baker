@@ -15,7 +15,7 @@ class ContextBuilderImpl(private val dataProvider: (String) -> Any?) : Context.B
     private var collectionPropertyNameStrategy = DEFAULT_COLLECTION_ELEMENT_PROPERTY_NAME_STRATEGY
     private var typeConverter = wrapTypeConverter(DEFAULT_TYPE_CONVERTER)
     private var mapCreator: () -> MutableMap<Any, Any> = DEFAULT_MAP_CREATOR
-    private var mapKeyStrategy: (KType) -> Iterable<String> = DEFAULT_MAP_KEY_STRATEGY
+    private var mapKeyStrategy = DEFAULT_MAP_KEY_STRATEGY
     private var mapValuePropertyNameStrategy = DEFAULT_REGULAR_PROPERTY_NAME_STRATEGY
 
     override fun withSimpleTypes(types: Set<KClass<*>>, replace: Boolean): Context.Builder {
@@ -104,7 +104,7 @@ class ContextBuilderImpl(private val dataProvider: (String) -> Any?) : Context.B
         }
     }
 
-    override fun withMapKeyStrategy(strategy: (KType) -> Iterable<String>): Context.Builder {
+    override fun withMapKeyStrategy(strategy: (String, KType) -> Set<String>): Context.Builder {
         return apply {
             mapKeyStrategy = strategy
         }
@@ -197,8 +197,8 @@ class ContextBuilderImpl(private val dataProvider: (String) -> Any?) : Context.B
             mutableMapOf()
         }
 
-        val DEFAULT_MAP_KEY_STRATEGY: (KType) -> Iterable<String> = {
-            emptyList()
+        val DEFAULT_MAP_KEY_STRATEGY: (String, KType) -> Set<String> = { _, _ ->
+            emptySet()
         }
     }
 }

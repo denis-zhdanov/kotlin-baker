@@ -14,7 +14,7 @@ class ContextImpl(
         private val simpleTypes: Set<KClass<*>>,
         private val collectionTypes: Set<KClass<*>>,
         private val mapCreator: () -> MutableMap<Any, Any>,
-        private val mapKeyStrategy: (KType) -> Iterable<String>,
+        private val mapKeyStrategy: (String, KType) -> Set<String>,
         private val mapPropertyNameStrategy: (String, String) -> String
 ) : Context {
 
@@ -62,8 +62,8 @@ class ContextImpl(
         return dataProvider(propertyName)
     }
 
-    override fun getMapKeys(keyType: KType): Iterable<String> {
-        return mapKeyStrategy(keyType)
+    override fun getMapKeys(mapPropertyName: String, keyType: KType): Set<String> {
+        return mapKeyStrategy(mapPropertyName, keyType)
     }
 
     override fun createMap(): MutableMap<Any, Any> {

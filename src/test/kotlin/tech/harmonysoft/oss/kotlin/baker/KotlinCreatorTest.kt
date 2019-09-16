@@ -351,8 +351,38 @@ internal class KotlinCreatorTest {
         val context = Context
                 .builder { input[it] }
                 .withTypeConverter(false, enumConverter(enumValues<Key>()))
-                .withMapKeyStrategy(enumKeyProducer<Key>())
-                .build()
+                .withMapKeyStrategy { _, type ->
+                    enumKeyProducer<Key>()(type)
+                }.build()
+        val actual = creator.create<Any>("", CompositeMapHolder::class.createType(), context)
+        assertThat(actual).isEqualTo(CompositeMapHolder(mapOf(
+                Key.FIRST to MapHolder(mapOf(Key.SECOND to 1)),
+                Key.SECOND to MapHolder(mapOf(Key.FIRST to 2, Key.SECOND to 3))
+        )))
+    }
+
+    @Test
+    fun `when map property is declared then map strategy receives correct property name`() {
+        val input = mapOf(
+                "prop.FIRST.prop.SECOND" to "1",
+                "prop.SECOND.prop.FIRST" to "2",
+                "prop.SECOND.prop.SECOND" to "3"
+        )
+        val context = Context
+                .builder { input[it] }
+                .withTypeConverter(false, enumConverter(enumValues<Key>()))
+                .withMapKeyStrategy { propertyName, _ ->
+                    input.keys.filter {
+                        it.startsWith(propertyName)
+                    }.map {
+                        val i = it.indexOf(".", propertyName.length + 1)
+                        if (i <= 0) {
+                            it.substring(propertyName.length + 1)
+                        } else {
+                            it.substring(propertyName.length + 1, i)
+                        }
+                    }.toSet()
+                }.build()
         val actual = creator.create<Any>("", CompositeMapHolder::class.createType(), context)
         assertThat(actual).isEqualTo(CompositeMapHolder(mapOf(
                 Key.FIRST to MapHolder(mapOf(Key.SECOND to 1)),
