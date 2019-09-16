@@ -16,5 +16,8 @@ cache:
 jdk:
   - oraclejdk9
 
+install:
+  - true
+
 script:
   - ./gradlew build -x dokkaJavadoc
