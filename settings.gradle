@@ -1,2 +1,5 @@
 rootProject.name = 'kotlin-baker'
 
+include 'lib', 'example:client', 'example:server'
+
+

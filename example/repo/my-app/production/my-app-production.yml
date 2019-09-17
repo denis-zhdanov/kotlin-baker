@@ -1,0 +1,3 @@
+servers:
+  - address: production-address1
+  - address: production-address2
