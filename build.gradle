@@ -48,4 +48,6 @@ allprojects {
     compileTestKotlin {
         kotlinOptions.jvmTarget = "1.8"
     }
+
+    bootJar.enabled = false
 }
