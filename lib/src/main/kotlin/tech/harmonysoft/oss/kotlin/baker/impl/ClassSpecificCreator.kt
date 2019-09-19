@@ -4,6 +4,7 @@ import tech.harmonysoft.oss.kotlin.baker.Context
 import tech.harmonysoft.oss.kotlin.baker.KotlinCreator
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
+import kotlin.reflect.full.createType
 
 @Suppress("UNCHECKED_CAST")
 class ClassSpecificCreator<T : Any>(private val type: KType) {
@@ -14,6 +15,10 @@ class ClassSpecificCreator<T : Any>(private val type: KType) {
     private val instantiators: Collection<Instantiator<T>> = parseConstructors(klass).map { Instantiator(it) }
 
     fun create(prefix: String, creator: KotlinCreator, context: Context): T {
+        if (type.classifier == Any::class) {
+            return createAny(prefix, context)
+        }
+
         val failedResults = mutableMapOf<Instantiator<T>, String>()
         val result = instantiators.mapFirstNotNull {
             val candidate = it.mayBeCreate(prefix, creator, context)
@@ -32,6 +37,27 @@ class ClassSpecificCreator<T : Any>(private val type: KType) {
         )
 
         return result
+    }
+
+    @Suppress("ALWAYS_NULL")
+    private fun createAny(prefix: String, context: Context): T {
+        val rawValue = context.getPropertyValue(prefix)
+        return if (rawValue == null) {
+            if (type.isMarkedNullable) {
+                rawValue as T
+            } else {
+                throw IllegalArgumentException(
+                        "Failed finding value for property '$prefix'"
+                )
+            }
+        } else {
+            val klass = type.classifier as? KClass<T>
+            if (klass == null) {
+                return rawValue as T
+            } else {
+                context.convertIfNecessary(rawValue, klass) as T
+            }
+        }
     }
 
     override fun toString(): String {

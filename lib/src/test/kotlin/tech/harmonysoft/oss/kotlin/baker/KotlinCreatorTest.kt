@@ -390,6 +390,42 @@ internal class KotlinCreatorTest {
         )))
     }
 
+    @Test
+    fun `when map of Any value is used then context value is correctly propagated`() {
+        data class Target(val data: Map<String, Any>)
+
+        val input = mapOf(
+                "data.key1" to "value1",
+                "data.key2" to 2
+        )
+
+        val context = Context
+                .builder { input[it] }
+                .withMapKeyStrategy { _, _ ->
+                    setOf("key1", "key2")
+                }.build()
+        val actual = creator.create<Target>("", Target::class.createType(), context)
+        assertThat(actual.data).isEqualTo(mapOf(
+                "key1" to "value1",
+                "key2" to 2
+        ))
+    }
+
+    @Test
+    fun `when map of Any? value is used then null values for all possible keys are not propagated`() {
+        data class Target(val data: Map<String, Any?>)
+
+        val input = mapOf("data.key1" to "value1")
+
+        val context = Context
+                .builder { input[it] }
+                .withMapKeyStrategy { _, _ ->
+                    setOf("key1", "key2")
+                }.build()
+        val actual = creator.create<Target>("", Target::class.createType(), context)
+        assertThat(actual.data).isEqualTo(mapOf("key1" to "value1"))
+    }
+
     private fun <T : Any> doCreate(klass: KClass<T>, data: Map<String, Any>): T {
         return creator.create("", klass.createType(), Context.builder { data[it] }.build())
     }
