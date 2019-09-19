@@ -2,6 +2,16 @@ servers:
   - settings:
       common-setting1: common-value1
       common-setting2: common-value2
+
   - settings:
       common-setting3: common-value3
       common-setting4: common-value4
+
+tasks:
+  task1:
+    prop1: value11
+    prop2: value 12
+
+  task2:
+    prop1: value21
+    prop2: value22

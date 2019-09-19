@@ -1,3 +1,7 @@
 servers:
   - address: production-address1
   - address: production-address2
+
+tasks:
+  task1:
+    prop2:  value32
