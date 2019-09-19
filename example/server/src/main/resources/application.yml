@@ -7,4 +7,4 @@ spring:
       server:
         git:
           uri: "https://github.com/denis-zhdanov/kotlin-baker"
-          searchPaths: "repo/{application}/{profile},repo/{application}"
+          searchPaths: "example/repo/{application}/{profile},example/repo/{application}"

@@ -4,7 +4,6 @@ import tech.harmonysoft.oss.kotlin.baker.Context
 import tech.harmonysoft.oss.kotlin.baker.KotlinCreator
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
-import kotlin.reflect.full.createType
 
 @Suppress("UNCHECKED_CAST")
 class ClassSpecificCreator<T : Any>(private val type: KType) {

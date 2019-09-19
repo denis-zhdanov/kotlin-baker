@@ -4,4 +4,4 @@ servers:
 
 tasks:
   - id: task2
-    prop2:  value32
+    prop2: value32

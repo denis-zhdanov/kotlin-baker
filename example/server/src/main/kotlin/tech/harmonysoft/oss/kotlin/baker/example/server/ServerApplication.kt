@@ -6,7 +6,7 @@ import org.springframework.cloud.config.server.EnableConfigServer
 
 @SpringBootApplication
 @EnableConfigServer
-class ServerApplication {
+open class ServerApplication {
 
     companion object {
         @JvmStatic
