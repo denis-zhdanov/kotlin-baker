@@ -145,6 +145,8 @@ class ContextBuilderImpl(private val dataProvider: (String) -> Any?) : Context.B
             when {
                 List::class.isSuperclassOf(klass) -> mutableListOf()
                 Set::class.isSuperclassOf(klass) -> mutableSetOf()
+                Collection::class.isSuperclassOf(klass) -> mutableListOf()
+                Iterable::class.isSuperclassOf(klass) -> mutableListOf()
                 else -> null
             }
         }

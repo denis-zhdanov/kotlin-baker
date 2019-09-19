@@ -313,7 +313,7 @@ internal class KotlinCreatorTest {
         )
         val context = Context.builder {
             input[it]
-        }.withCollectionCreator { collectionClass ->
+        }.withCollectionCreator(true) { collectionClass ->
             if (BlockingQueue::class.isSuperclassOf(collectionClass)) {
                 LinkedBlockingQueue()
             } else {
