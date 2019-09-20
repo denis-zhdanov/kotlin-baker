@@ -1,0 +1,3 @@
+./gradlew :lib:uploadArchives
+./gradlew closeAndReleaseRepository
+./gradlew :lib:bintrayUpload

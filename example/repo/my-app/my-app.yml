@@ -1,19 +1,10 @@
-servers:
-  - settings:
-      common-setting1: common-value1
-      common-setting2: common-value2
-
-  - settings:
-      common-setting3: common-value3
-      common-setting4: common-value4
-
 tasks:
   - id: task1
     properties:
-      prop1: value11
-      prop2: value 12
+      prop1: commonTask1Prop1
+      prop2: commonTask1Prop2
 
   - id: task2
     properties:
-      prop1: value21
-      prop2: value22
+      prop1: commonTask2Prop1
+      prop2: commonTask2Prop2
