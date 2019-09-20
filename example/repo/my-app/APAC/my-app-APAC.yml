@@ -1,3 +1,4 @@
 tasks:
-  - id: task2
-    prop2: apacTask2Prop2
+  task2:
+    properties:
+      prop2: apacTask2Prop2

@@ -49,11 +49,6 @@ open class ClientApplication {
     }
 
     @Bean
-    open fun servers(creator: KotlinCreator, context: Context): Servers {
-        return creator.create("", Servers::class.createType(), context)
-    }
-
-    @Bean
     open fun tasks(creator: KotlinCreator, context: Context): Tasks {
         return creator.create("", Tasks::class.createType(), context)
     }
