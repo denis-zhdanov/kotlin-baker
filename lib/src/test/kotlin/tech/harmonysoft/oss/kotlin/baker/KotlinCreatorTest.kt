@@ -7,6 +7,7 @@ import org.junit.jupiter.api.assertThrows
 import tech.harmonysoft.oss.kotlin.baker.impl.CacheAwareCreator
 import tech.harmonysoft.oss.kotlin.baker.impl.enumConverter
 import tech.harmonysoft.oss.kotlin.baker.impl.enumKeyProducer
+import java.time.ZoneId
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 import kotlin.reflect.KClass
@@ -424,6 +425,16 @@ internal class KotlinCreatorTest {
                 }.build()
         val actual = creator.create<Target>("", Target::class.createType(), context)
         assertThat(actual.data).isEqualTo(mapOf("key1" to "value1"))
+    }
+
+    @Test
+    fun `when ZoneId is used then it's supported`() {
+        data class Target(val timeZone: ZoneId)
+
+        val timeZone = ZoneId.of("Asia/Singapore")
+        val input = mapOf("timeZone" to timeZone.id)
+        val actual = doCreate(Target::class, input)
+        assertThat(actual.timeZone).isEqualTo(timeZone)
     }
 
     private fun <T : Any> doCreate(klass: KClass<T>, data: Map<String, Any>): T {

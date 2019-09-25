@@ -1,6 +1,7 @@
 package tech.harmonysoft.oss.kotlin.baker.impl
 
 import tech.harmonysoft.oss.kotlin.baker.Context
+import java.time.ZoneId
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.full.isSuperclassOf
@@ -23,7 +24,7 @@ class ContextBuilderImpl(private val dataProvider: (String) -> Any?) : Context.B
             if (replace) {
                 simpleTypes.clear()
             }
-            simpleTypes += types
+            simpleTypes.addAll(types)
         }
     }
 
@@ -132,9 +133,9 @@ class ContextBuilderImpl(private val dataProvider: (String) -> Any?) : Context.B
     }
 
     companion object {
-        val DEFAULT_SIMPLE_TYPES = setOf(
+        val DEFAULT_SIMPLE_TYPES = setOf<KClass<*>>(
                 Boolean::class, Short::class, Char::class, Int::class, Long::class, Float::class, Double::class,
-                String::class
+                String::class, ZoneId::class
         )
 
         val DEFAULT_COLLECTION_TYPES: Set<KClass<*>> = setOf(
@@ -190,6 +191,7 @@ class ContextBuilderImpl(private val dataProvider: (String) -> Any?) : Context.B
                     Long::class -> trimmedValue.toLong()
                     Float::class -> trimmedValue.toFloat()
                     Double::class -> trimmedValue.toDouble()
+                    ZoneId::class -> ZoneId.of(rawValue.toString())
                     else -> null
                 }
             }
