@@ -7,11 +7,13 @@ import org.junit.jupiter.api.assertThrows
 import tech.harmonysoft.oss.kotlin.baker.impl.CacheAwareCreator
 import tech.harmonysoft.oss.kotlin.baker.impl.enumConverter
 import tech.harmonysoft.oss.kotlin.baker.impl.enumKeyProducer
+import java.lang.StringBuilder
 import java.time.ZoneId
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createType
+import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.isSuperclassOf
 
 internal class KotlinCreatorTest {
@@ -26,6 +28,7 @@ internal class KotlinCreatorTest {
     @Test
     fun `when data class with single constructor is targeted then it's used`() {
         data class Target(val prop: Int)
+
         val result = doCreate(Target::class, mapOf("prop" to 1))
         assertThat(result.prop).isEqualTo(1)
     }
@@ -33,6 +36,7 @@ internal class KotlinCreatorTest {
     @Test
     fun `when regular class with single constructor is targeted the it's used`() {
         class Target(val prop: Int)
+
         val result = doCreate(Target::class, mapOf("prop" to 1))
         assertThat(result.prop).isEqualTo(1)
     }
@@ -40,6 +44,7 @@ internal class KotlinCreatorTest {
     @Test
     fun `when there is no property value for parameter with default value in a data class then default value is used`() {
         data class Target(val prop: Int = 1)
+
         val result = doCreate(Target::class, emptyMap())
         assertThat(result.prop).isEqualTo(1)
     }
@@ -47,6 +52,7 @@ internal class KotlinCreatorTest {
     @Test
     fun `when there is no property value for parameter with default value in a regular class then default value is used`() {
         class Target(val prop: Int = 1)
+
         val result = doCreate(Target::class, emptyMap())
         assertThat(result.prop).isEqualTo(1)
     }
@@ -54,6 +60,7 @@ internal class KotlinCreatorTest {
     @Test
     fun `when there is a property value for parameter with default value in a data class then it overrides default value`() {
         data class Target(val prop: Int = 1)
+
         val result = doCreate(Target::class, mapOf("prop" to 2))
         assertThat(result.prop).isEqualTo(2)
     }
@@ -61,6 +68,7 @@ internal class KotlinCreatorTest {
     @Test
     fun `when there is a property value for parameter with default value in a regular class then it overrides default value`() {
         class Target(val prop: Int = 1)
+
         val result = doCreate(Target::class, mapOf("prop" to 2))
         assertThat(result.prop).isEqualTo(2)
     }
@@ -68,6 +76,7 @@ internal class KotlinCreatorTest {
     @Test
     fun `when there is no property value for a nullable parameter in a data class then null is used`() {
         data class Target(val prop: Int?)
+
         val result = doCreate(Target::class, emptyMap())
         assertThat(result.prop).isNull()
     }
@@ -75,6 +84,7 @@ internal class KotlinCreatorTest {
     @Test
     fun `when there is no property value for a nullable parameter in a regular class then null is used`() {
         class Target(val prop: Int?)
+
         val result = doCreate(Target::class, emptyMap())
         assertThat(result.prop).isNull()
     }
@@ -83,6 +93,7 @@ internal class KotlinCreatorTest {
     fun `when there is a non-primitive parameter in a data class then it's correctly instantiated`() {
         data class Inner(val prop: Int)
         data class Outer(val inner: Inner)
+
         val result = doCreate(Outer::class, mapOf("inner.prop" to 1))
         assertThat(result.inner.prop).isEqualTo(1)
     }
@@ -90,6 +101,7 @@ internal class KotlinCreatorTest {
     @Test
     fun `when Boolean property has a correct value then it's supported`() {
         class Target(val prop: Boolean?)
+
         val result = doCreate(Target::class, mapOf("prop" to "true"))
         assertThat(result.prop).isEqualTo(true)
     }
@@ -106,6 +118,7 @@ internal class KotlinCreatorTest {
     @Test
     fun `when Char property has a correct value then it's supported`() {
         class Target(val prop: Char?)
+
         val result = doCreate(Target::class, mapOf("prop" to "a"))
         assertThat(result.prop).isEqualTo('a')
     }
@@ -122,6 +135,7 @@ internal class KotlinCreatorTest {
     @Test
     fun `when Short property has a correct value then it's supported`() {
         class Target(val prop: Short?)
+
         val result = doCreate(Target::class, mapOf("prop" to "1"))
         assertThat(result.prop).isEqualTo(1.toShort())
     }
@@ -138,6 +152,7 @@ internal class KotlinCreatorTest {
     @Test
     fun `when Int property has a correct value then it's supported`() {
         class Target(val prop: Int?)
+
         val result = doCreate(Target::class, mapOf("prop" to "1"))
         assertThat(result.prop).isEqualTo(1)
     }
@@ -154,6 +169,7 @@ internal class KotlinCreatorTest {
     @Test
     fun `when Long property has a correct value then it's supported`() {
         class Target(val prop: Long?)
+
         val result = doCreate(Target::class, mapOf("prop" to "1"))
         assertThat(result.prop).isEqualTo(1L)
     }
@@ -170,6 +186,7 @@ internal class KotlinCreatorTest {
     @Test
     fun `when Float property has a correct value then it's supported`() {
         class Target(val prop: Float?)
+
         val result = doCreate(Target::class, mapOf("prop" to "1.2"))
         assertThat(result.prop).isEqualTo(1.2f)
     }
@@ -186,6 +203,7 @@ internal class KotlinCreatorTest {
     @Test
     fun `when Double property has a correct value then it's supported`() {
         class Target(val prop: Double?)
+
         val result = doCreate(Target::class, mapOf("prop" to "1.2"))
         assertThat(result.prop).isEqualTo(1.2)
     }
@@ -202,6 +220,7 @@ internal class KotlinCreatorTest {
     @Test
     fun `when List property of simple values is used then it's correctly applied`() {
         data class Target(val prop: List<Int>)
+
         val result = doCreate(Target::class, mapOf(
                 "prop[0]" to "1",
                 "prop[1]" to 2,
@@ -213,6 +232,7 @@ internal class KotlinCreatorTest {
     @Test
     fun `when Set property of simple values is used then it's correctly applied`() {
         data class Target(val prop: Set<Int>)
+
         val result = doCreate(Target::class, mapOf(
                 "prop[0]" to "1",
                 "prop[1]" to 2,
@@ -287,6 +307,7 @@ internal class KotlinCreatorTest {
     fun `when custom simple type is defined then it's respected`() {
         data class Element(val value: Int)
         data class Composite(val first: Element, val second: Element)
+
         val input = mapOf(
                 "first" to "1",
                 "second" to "2"
@@ -308,6 +329,7 @@ internal class KotlinCreatorTest {
     @Test
     fun `when custom collection type is defined then it's respected`() {
         data class Target(val queue: BlockingQueue<Int>)
+
         val input = mapOf(
                 "queue[0]" to "1",
                 "queue[1]" to "2"
@@ -334,7 +356,7 @@ internal class KotlinCreatorTest {
         )
         val context = Context
                 .builder { input[it] }
-                .withCollectionElementPropertyNameStrategy { base, index ->  "$base<${index + 1}>"}
+                .withCollectionElementPropertyNameStrategy { base, index -> "$base<${index + 1}>" }
                 .build()
         val actual = creator.create<NonSimpleTypeListHolder>(
                 "", NonSimpleTypeListHolder::class.createType(), context
@@ -437,6 +459,29 @@ internal class KotlinCreatorTest {
         assertThat(actual.timeZone).isEqualTo(timeZone)
     }
 
+    @Test
+    fun `when super class is configured as a simple type then sub-type is also treated as a simple type`() {
+        data class Target(val data: Success)
+
+        val input = mapOf("data" to "1")
+        val context = Context.builder {
+            input[it]
+        }.withTypeConverter { rawValue, klass ->
+            if (Result::class.isSuperclassOf(klass)) {
+                try {
+                    Success(rawValue.toString().toInt())
+                } catch (e: Exception) {
+                    Error(rawValue.toString())
+                }
+            } else {
+                null
+            }
+        }.withSimpleTypes(setOf(Result::class), true).build()
+
+        val actual = creator.create<Target>("", Target::class.createType(), context)
+        assertThat(actual.data).isEqualTo(Success(1))
+    }
+
     private fun <T : Any> doCreate(klass: KClass<T>, data: Map<String, Any>): T {
         return creator.create("", klass.createType(), Context.builder { data[it] }.build())
     }
@@ -460,3 +505,7 @@ internal class KotlinCreatorTest {
 
     data class CompositeMapHolder(val prop: Map<Key, MapHolder>)
 }
+
+sealed class Result
+data class Success(val value: Int) : Result()
+data class Error(val message: String) : Result()

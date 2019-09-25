@@ -4,6 +4,7 @@ import tech.harmonysoft.oss.kotlin.baker.Context
 import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
+import kotlin.reflect.full.isSuperclassOf
 
 class ContextImpl(
         private val dataProvider: (String) -> Any?,
@@ -35,7 +36,9 @@ class ContextImpl(
     }
 
     override fun isSimpleType(klass: KClass<*>): Boolean {
-        return simpleTypes.contains(klass)
+        return simpleTypes.any {
+            it.isSuperclassOf(klass)
+        }
     }
 
     override fun isCollection(klass: KClass<*>): Boolean {
