@@ -4,16 +4,16 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import tech.harmonysoft.oss.kotlin.baker.impl.CacheAwareCreator
+import tech.harmonysoft.oss.kotlin.baker.impl.KotlinCreatorImpl
 import tech.harmonysoft.oss.kotlin.baker.impl.enumConverter
 import tech.harmonysoft.oss.kotlin.baker.impl.enumKeyProducer
-import java.lang.StringBuilder
+import java.time.DayOfWeek
 import java.time.ZoneId
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createType
-import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.isSuperclassOf
 
 internal class KotlinCreatorTest {
@@ -22,7 +22,7 @@ internal class KotlinCreatorTest {
 
     @BeforeEach
     fun setUp() {
-        creator = CacheAwareCreator()
+        creator = KotlinCreatorImpl()
     }
 
     @Test
@@ -480,6 +480,18 @@ internal class KotlinCreatorTest {
 
         val actual = creator.create<Target>("", Target::class.createType(), context)
         assertThat(actual.data).isEqualTo(Success(1))
+    }
+
+    @Test
+    fun `when enums are used then they are supported by default`() {
+        data class Target(val unit: TimeUnit, val day: DayOfWeek)
+
+        val input = mapOf(
+                "unit" to TimeUnit.NANOSECONDS.name,
+                "day" to DayOfWeek.FRIDAY.name
+        )
+        val actual = doCreate(Target::class, input)
+        assertThat(actual).isEqualTo(Target(TimeUnit.NANOSECONDS, DayOfWeek.FRIDAY))
     }
 
     private fun <T : Any> doCreate(klass: KClass<T>, data: Map<String, Any>): T {
