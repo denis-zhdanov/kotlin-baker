@@ -19,7 +19,8 @@ class ClassSpecificCreator<T : Any>(private val type: KType) {
         }
 
         val failedResults = mutableMapOf<Instantiator<T>, String>()
-        val result = instantiators.mapFirstNotNull {
+
+        return instantiators.mapFirstNotNull {
             val candidate = it.mayBeCreate(prefix, creator, context)
             if (candidate.success) {
                 candidate.successValue
@@ -34,8 +35,6 @@ class ClassSpecificCreator<T : Any>(private val type: KType) {
                     "${it.key} - ${it.value}"
                 }
         )
-
-        return result
     }
 
     @Suppress("ALWAYS_NULL")

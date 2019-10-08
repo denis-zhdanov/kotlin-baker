@@ -48,7 +48,15 @@ class ParameterValueRetriever(val parameter: KParameter) {
             return retrieveMap(propertyName, creator, context)
         }
 
-        return Result.success(creator.create(propertyName, parameter.type, context))
+        return try {
+            Result.success(creator.create(propertyName, parameter.type, context))
+        } catch (e: Exception) {
+            if (parameter.isOptional) {
+                null
+            } else {
+                throw e
+            }
+        }
     }
 
     private fun retrieveSimpleValue(
@@ -118,10 +126,19 @@ class ParameterValueRetriever(val parameter: KParameter) {
             }
         }
 
-        return if (parameters.isEmpty() && !context.tolerateEmptyCollection) {
-            Result.failure("no collection elements are found and context doesn't tolerate empty collections")
-        } else {
-            Result.success(parameters)
+        return when {
+            parameters.isEmpty() -> {
+                when {
+                    parameter.type.isMarkedNullable -> Result.success<Any?, String>(null)
+                    parameter.isOptional -> null
+                    else -> Result.failure(
+                            "Can't instantiate collection property '${parameter.name}' for type "
+                            + "${parameter.type} - no data is defined for it and the property is "
+                            + "mandatory (non-nullable and doesn't have default value). Tried to find the "
+                            + "value using key '${context.getCollectionElementPropertyName(propertyName, 0)}'")
+                }
+            }
+            else -> Result.success(parameters)
         }
     }
 

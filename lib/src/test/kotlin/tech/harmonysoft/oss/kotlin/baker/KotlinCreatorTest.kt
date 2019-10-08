@@ -42,7 +42,7 @@ internal class KotlinCreatorTest {
     }
 
     @Test
-    fun `when there is no property value for parameter with default value in a data class then default value is used`() {
+    fun `when there is no property value for simple parameter with default value in a data class then default value is used`() {
         data class Target(val prop: Int = 1)
 
         val result = doCreate(Target::class, emptyMap())
@@ -50,11 +50,43 @@ internal class KotlinCreatorTest {
     }
 
     @Test
-    fun `when there is no property value for parameter with default value in a regular class then default value is used`() {
+    fun `when there is no property value for simple parameter with default value in a regular class then default value is used`() {
         class Target(val prop: Int = 1)
 
         val result = doCreate(Target::class, emptyMap())
         assertThat(result.prop).isEqualTo(1)
+    }
+
+    @Test
+    fun `when there is no property value for collection parameter with default value then default value is used`() {
+        data class Target(val data: List<Int> = listOf(2))
+
+        val result = doCreate(Target::class, emptyMap())
+        assertThat(result).isEqualTo(Target(listOf(2)))
+    }
+
+    @Test
+    fun `when there is no property value for collection parameter with default null value then null is used`() {
+        data class Target(val data: List<Int>? = null)
+
+        val result = doCreate(Target::class, emptyMap())
+        assertThat(result).isEqualTo(Target(null))
+    }
+
+    @Test
+    fun `when there is no property value for custom type parameter with default value then default value is used`() {
+        data class Target(val data: ListElement = ListElement(2))
+
+        val result = doCreate(Target::class, emptyMap())
+        assertThat(result).isEqualTo(Target(ListElement(2)))
+    }
+
+    @Test
+    fun `when there is no property value for custom type parameter with default null value then null is used`() {
+        data class Target(val data: ListElement? = null)
+
+        val result = doCreate(Target::class, emptyMap())
+        assertThat(result).isEqualTo(Target(null))
     }
 
     @Test
@@ -494,6 +526,62 @@ internal class KotlinCreatorTest {
         assertThat(actual).isEqualTo(Target(TimeUnit.NANOSECONDS, DayOfWeek.FRIDAY))
     }
 
+    @Test
+    fun `when nullable collection of simple types is used and no data is available then null is used`() {
+        data class Target(val data: Set<Int>?)
+
+        val actual = doCreate(Target::class, emptyMap())
+        assertThat(actual.data).isNull()
+    }
+
+    @Test
+    fun `when nullable collection of reference types is used and no data is available then null is used`() {
+        val actual = doCreate(NullableListHolder::class, mapOf("e.value" to 2))
+        assertThat(actual).isEqualTo(NullableListHolder(ListElement(2), null))
+    }
+
+    @Test
+    fun `when nullable nested collection of simple types is used and no data is available then null is used`() {
+        val actual = doCreate(CompositeNullableListHolder::class, emptyMap())
+        assertThat(actual).isEqualTo(CompositeNullableListHolder(NullableSimpleTypeListHolder(null)))
+    }
+
+    @Test
+    fun `when nullable nested collection of simple type is used then it's correctly instantiated`() {
+        val actual = doCreate(CompositeNullableCollectionListHolder::class, mapOf(
+                "data[0].prop[0]" to "1",
+                "data[0].prop[1]" to "2",
+                "data[1].prop[0]" to "3"
+        ))
+        assertThat(actual).isEqualTo(CompositeNullableCollectionListHolder(listOf(
+                NullableSimpleTypeListHolder(listOf(1, 2)),
+                NullableSimpleTypeListHolder(listOf(3))
+        )))
+    }
+
+    @Test
+    fun `when nullable nested collection of simple type with default value is used then it's correctly instantiated`() {
+        val actual = doCreate(CompositeNullableCollectionWithDefaultValueListHolder::class, mapOf(
+                "data[0].prop[0]" to "1",
+                "data[0].prop[1]" to "2",
+                "data[1].prop[0]" to "3"
+        ))
+        assertThat(actual).isEqualTo(CompositeNullableCollectionWithDefaultValueListHolder(listOf(
+                NullableSimpleTypeListHolderWithDefaultValue(listOf(1, 2)),
+                NullableSimpleTypeListHolderWithDefaultValue(listOf(3))
+        )))
+    }
+
+    @Test
+    fun `when nullable nested collection of reference types is used and no data is available for it then null is used`() {
+        val actual = doCreate(MixedHolderWithNullableCollection::class, mapOf(
+                "first" to "2",
+                "second" to "abc"
+        ))
+        assertThat(actual).isEqualTo(MixedHolderWithNullableCollection(2, "abc", null))
+    }
+
+
     private fun <T : Any> doCreate(klass: KClass<T>, data: Map<String, Any>): T {
         return creator.create("", klass.createType(), Context.builder { data[it] }.build())
     }
@@ -511,11 +599,25 @@ internal class KotlinCreatorTest {
 
     data class SimpleTypeListHolder(val prop: List<Int>)
 
+    data class NullableSimpleTypeListHolder(val prop: List<Int>?)
+
+    data class NullableSimpleTypeListHolderWithDefaultValue(val prop: List<Int>? = listOf(99))
+
     data class CompositeSimpleListHolder(val prop: List<SimpleTypeListHolder>)
 
     data class MapHolder(val prop: Map<Key, Int>)
 
     data class CompositeMapHolder(val prop: Map<Key, MapHolder>)
+
+    data class NullableListHolder(val e: ListElement, val s: Set<ListElement>?)
+
+    data class CompositeNullableListHolder(val data: NullableSimpleTypeListHolder)
+
+    data class CompositeNullableCollectionListHolder(val data: Collection<NullableSimpleTypeListHolder>?)
+
+    data class CompositeNullableCollectionWithDefaultValueListHolder(val data: Collection<NullableSimpleTypeListHolderWithDefaultValue>?)
+
+    data class MixedHolderWithNullableCollection(val first: Int, val second: String, val data: Set<ListElement>?)
 }
 
 sealed class Result

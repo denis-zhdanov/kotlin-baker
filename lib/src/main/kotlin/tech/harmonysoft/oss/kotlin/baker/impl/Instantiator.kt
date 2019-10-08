@@ -2,7 +2,9 @@ package tech.harmonysoft.oss.kotlin.baker.impl
 
 import tech.harmonysoft.oss.kotlin.baker.Context
 import tech.harmonysoft.oss.kotlin.baker.KotlinCreator
+import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
+import kotlin.reflect.KType
 import kotlin.reflect.jvm.javaConstructor
 
 class Instantiator<T>(private val constructor: KFunction<T>) {
@@ -15,19 +17,12 @@ class Instantiator<T>(private val constructor: KFunction<T>) {
             return Result.failure(error)
         }
         val paramLookupResults = retrievers.map {
-            it to it.retrieve(prefix, creator, context)
+            it to mayBeRemap(it.retrieve(prefix, creator, context), it.parameter.type, context)
         }.toMap()
 
         val error = paramLookupResults.values.mapNotNull {
-            if (it == null) {
+            if (it == null || it.success) {
                 null
-            } else if (it.success) {
-                val successValue = it.successValue
-                if (!context.tolerateEmptyCollection && successValue is Collection<*> && successValue.isEmpty()) {
-                    "found an empty collection parameter but current context disallows that"
-                } else {
-                    null
-                }
             } else {
                 it.failureValue
             }
@@ -48,6 +43,22 @@ class Instantiator<T>(private val constructor: KFunction<T>) {
             Result.failure("${e.javaClass.name}: ${e.message} for parameters ${arguments.joinToString {
                 "${it.first.name}=${it.second}"
             }}")
+        }
+    }
+
+    private fun mayBeRemap(result: Result<Any?, String>?, type: KType, context: Context): Result<Any?, String>? {
+        if (context.tolerateEmptyCollection || (result != null && !result.success)) {
+            return result
+        }
+        val klass = type.classifier as? KClass<*> ?: return result
+        if (!context.isCollection(klass)) {
+            return result
+        }
+
+        return if (result == null || (result.successValue as Collection<*>).isEmpty()) {
+            Result.failure("found an empty collection parameter but current context disallows that")
+        } else {
+            result
         }
     }
 
