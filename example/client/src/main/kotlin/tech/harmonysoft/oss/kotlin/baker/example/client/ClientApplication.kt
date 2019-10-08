@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.core.env.*
 import tech.harmonysoft.oss.kotlin.baker.Context
 import tech.harmonysoft.oss.kotlin.baker.KotlinCreator
-import tech.harmonysoft.oss.kotlin.baker.impl.CacheAwareCreator
+import tech.harmonysoft.oss.kotlin.baker.impl.KotlinCreatorImpl
 import kotlin.reflect.full.createType
 
 @EnableConfigurationProperties
@@ -23,7 +23,7 @@ open class ClientApplication {
 
     @Bean
     open fun creator(environment: Environment): KotlinCreator {
-        return CacheAwareCreator()
+        return KotlinCreatorImpl()
     }
 
     @Bean
