@@ -6,6 +6,14 @@ https://repo1.maven.org/maven2/tech/harmonysoft/kotlin-baker/
 
 https://repo.jfrog.org/artifactory/libs-release-bintray/tech/harmonysoft/kotlin-baker/
 
+**v.1.0.4**
+
+* [Respect nullable collection properties](https://github.com/denis-zhdanov/kotlin-baker/issues/9)
+* [Report a situation when there is a simple value instead of collection value](https://github.com/denis-zhdanov/kotlin-baker/issues/10)
+* [Support enum map keys out of the box](https://github.com/denis-zhdanov/kotlin-baker/issues/11)
+* [Consider Unit response from type converter as 'not supported](https://github.com/denis-zhdanov/kotlin-baker/issues/12)
+* [Consider Unit response from collection creator as "can't create"](https://github.com/denis-zhdanov/kotlin-baker/issues/13)
+
 **v.1.0.3**
 
 * [Make sure the simple types check works in a IS-A manner](https://github.com/denis-zhdanov/kotlin-baker/issues/6)

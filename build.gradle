@@ -20,7 +20,7 @@ allprojects {
     apply plugin: 'io.spring.dependency-management'
 
     group 'tech.harmonysoft'
-    version '1.0.3'
+    version '1.0.4'
 
     repositories {
         mavenLocal()
