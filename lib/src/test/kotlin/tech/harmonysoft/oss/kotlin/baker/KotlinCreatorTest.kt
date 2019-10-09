@@ -581,6 +581,18 @@ internal class KotlinCreatorTest {
         assertThat(actual).isEqualTo(MixedHolderWithNullableCollection(2, "abc", null))
     }
 
+    @Test
+    fun `when custom type converter returns Unit it's treated as "didn't convert'`() {
+        data class Target(val data: String)
+
+        val context = Context.builder {
+            1
+        }.withTypeConverter(true) { _, _ -> }.build()
+
+        assertThrows<IllegalArgumentException> {
+            creator.create<Target>("", Target::class.createType(), context)
+        }
+    }
 
     private fun <T : Any> doCreate(klass: KClass<T>, data: Map<String, Any>): T {
         return creator.create("", klass.createType(), Context.builder { data[it] }.build())

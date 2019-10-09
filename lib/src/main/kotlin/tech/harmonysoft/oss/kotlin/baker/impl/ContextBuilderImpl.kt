@@ -51,7 +51,10 @@ class ContextBuilderImpl(private val dataProvider: (String) -> Any?) : Context.B
 
     private fun wrapTypeConverter(converter: (Any, KClass<*>) -> Any?): (Any, KClass<*>) -> Any {
         return { value, targetType ->
-            converter(value, targetType) ?: if (targetType.isInstance(value)) {
+            val result = converter(value, targetType)
+            if (result != null && targetType.isInstance(result)) {
+                result
+            } else if (targetType.isInstance(value)) {
                 value
             } else {
                 throw IllegalArgumentException(
