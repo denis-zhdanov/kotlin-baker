@@ -90,9 +90,14 @@ class ContextBuilderImpl(private val dataProvider: (String) -> Any?) : Context.B
             creator: (KClass<*>) -> MutableCollection<Any>?
     ): (KClass<*>) -> MutableCollection<Any> {
         return {
-            creator(it) ?: throw IllegalArgumentException(
-                    "Failed creating a collection of type '${it.qualifiedName}'"
-            )
+            val result = creator(it)
+            if (result != null && it.isInstance(result)) {
+                result
+            } else {
+                throw IllegalArgumentException(
+                        "Failed creating a collection of type '${it.qualifiedName}'"
+                )
+            }
         }
     }
 
