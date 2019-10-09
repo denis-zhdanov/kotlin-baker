@@ -602,6 +602,24 @@ internal class KotlinCreatorTest {
         assertThat(actual.data).isEqualTo(mapOf(DayOfWeek.MONDAY to 2))
     }
 
+    @Test
+    fun `when simple value is used in place of collection value then it's reported`() {
+        data class Target(val data: List<Int>?)
+
+        assertThrows<IllegalArgumentException> {
+            doCreate(Target::class, mapOf("data" to "2"))
+        }
+    }
+
+    @Test
+    fun `when simple value is used in place of map value then it's reported`() {
+        data class Target(val data: Map<DayOfWeek, Int>?)
+
+        assertThrows<IllegalArgumentException> {
+            doCreate(Target::class, mapOf("data" to "2"))
+        }
+    }
+
     private fun <T : Any> doCreate(klass: KClass<T>, data: Map<String, Any>): T {
         return creator.create("", klass.createType(), Context.builder { data[it] }.build())
     }

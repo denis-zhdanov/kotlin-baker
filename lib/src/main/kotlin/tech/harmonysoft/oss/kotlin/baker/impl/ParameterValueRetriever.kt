@@ -82,6 +82,14 @@ class ParameterValueRetriever(val parameter: KParameter) {
             creator: KotlinCreator,
             context: Context
     ) : Result<Any?, String>? {
+        val invalidValue = context.getPropertyValue(propertyName)
+        if (invalidValue != null) {
+            throw IllegalArgumentException(
+                    "Expected to find collection data as a parameter '${parameter.name}' of type ${parameter.type} "
+                    + "under base property '$propertyName' but found a simple value '$invalidValue' instead"
+            )
+        }
+
         val typeArguments = parameter.type.arguments
         if (typeArguments.size != 1) {
             throw IllegalArgumentException(
@@ -147,6 +155,14 @@ class ParameterValueRetriever(val parameter: KParameter) {
             creator: KotlinCreator,
             context: Context
     ): Result<Any?, String>? {
+        val invalidValue = context.getPropertyValue(propertyName)
+        if (invalidValue != null) {
+            throw IllegalArgumentException(
+                    "Expected to find map data as a parameter '${parameter.name}' of type ${parameter.type} "
+                    + "under base property '$propertyName' but found a simple value '$invalidValue' instead"
+            )
+        }
+
         val keyType = parameter.type.arguments[0].type ?: throw IllegalArgumentException(
                 "Failed instantiating a Map property '$propertyName' - no key type info is available for $parameter"
         )
