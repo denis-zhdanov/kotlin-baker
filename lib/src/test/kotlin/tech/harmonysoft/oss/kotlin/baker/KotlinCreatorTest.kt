@@ -594,6 +594,14 @@ internal class KotlinCreatorTest {
         }
     }
 
+    @Test
+    fun `when enum is used as map key that it's supported out of the box`() {
+        data class Target(val data: Map<DayOfWeek, Int>)
+
+        val actual = doCreate(Target::class, mapOf("data.MONDAY" to "2"))
+        assertThat(actual.data).isEqualTo(mapOf(DayOfWeek.MONDAY to 2))
+    }
+
     private fun <T : Any> doCreate(klass: KClass<T>, data: Map<String, Any>): T {
         return creator.create("", klass.createType(), Context.builder { data[it] }.build())
     }

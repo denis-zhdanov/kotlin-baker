@@ -194,8 +194,13 @@ interface Context {
          * Strategy for keys to try for the target key type (see [Context.getMapKeys]).
          *
          * [ContextBuilderImpl.DEFAULT_MAP_KEY_STRATEGY] is used by default.
+         *
+         * @param replace       defines whether given strategy should be used as a complement to the
+         *                      built-in strategy or should completely replace it
+         * @param strategy      the actual strategy; returns empty set as an indication that it doesn't
+         *                      know how to map target keys
          */
-        fun withMapKeyStrategy(strategy: (String, KType) -> Set<String>): Builder
+        fun withMapKeyStrategy(replace: Boolean = false, strategy: (String, KType) -> Set<String>): Builder
 
         /**
          * Strategy for map value property name strategy (see [Context.getMapValuePropertyName]).

@@ -113,9 +113,21 @@ class ContextBuilderImpl(private val dataProvider: (String) -> Any?) : Context.B
         }
     }
 
-    override fun withMapKeyStrategy(strategy: (String, KType) -> Set<String>): Context.Builder {
+    override fun withMapKeyStrategy(replace: Boolean, strategy: (String, KType) -> Set<String>): Context.Builder {
         return apply {
-            mapKeyStrategy = strategy
+            if (replace) {
+                mapKeyStrategy = strategy
+            } else {
+                val initial = mapKeyStrategy
+                mapKeyStrategy = { key, type ->
+                    val result = initial(key, type)
+                    if (result.isEmpty()) {
+                        strategy(key, type)
+                    } else {
+                        result
+                    }
+                }
+            }
         }
     }
 
@@ -177,6 +189,7 @@ class ContextBuilderImpl(private val dataProvider: (String) -> Any?) : Context.B
                 rawValue
             } else {
                 val trimmedValue = rawValue.toString().trim()
+                @Suppress("UNCHECKED_CAST")
                 when (targetClass) {
                     Boolean::class -> when {
                         trimmedValue.equals("true", true) -> true
@@ -200,7 +213,13 @@ class ContextBuilderImpl(private val dataProvider: (String) -> Any?) : Context.B
                     Float::class -> trimmedValue.toFloat()
                     Double::class -> trimmedValue.toDouble()
                     ZoneId::class -> ZoneId.of(rawValue.toString())
-                    else -> null
+                    else -> {
+                        if (Enum::class.isSuperclassOf(targetClass)) {
+                            (targetClass.java.enumConstants as Array<Enum<*>>).find { it.name == rawValue }
+                        } else {
+                            null
+                        }
+                    }
                 }
             }
         }
@@ -209,8 +228,17 @@ class ContextBuilderImpl(private val dataProvider: (String) -> Any?) : Context.B
             mutableMapOf()
         }
 
-        val DEFAULT_MAP_KEY_STRATEGY: (String, KType) -> Set<String> = { _, _ ->
-            emptySet()
+        val DEFAULT_MAP_KEY_STRATEGY: (String, KType) -> Set<String> = { _, type ->
+            (type.classifier as? KClass<*>)?.let { klass ->
+                if (Enum::class.isSuperclassOf(klass)) {
+                    @Suppress("UNCHECKED_CAST")
+                    (klass.java.enumConstants as Array<Enum<*>>).map {
+                        it.name
+                    }.toSet()
+                } else {
+                    emptySet()
+                }
+            } ?: emptySet()
         }
     }
 }
