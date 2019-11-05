@@ -44,6 +44,23 @@ interface Context {
     val tolerateEmptyCollection: Boolean
 
     /**
+     * This property complements [tolerateEmptyCollection] - there are situations like below:
+     *
+     * ```
+     * data class Composite(val composites: <Leaf>)
+     *
+     * data class Leaf(val i: Int, val strings: Set<String>?)
+     * ```
+     *
+     * Here we normally have [tolerateEmptyCollection] set to `false` during `Leaf` objects instantiation.
+     * However, as the class has non-nullable parameter and collection parameter is marked nullable, it's
+     * ok to accept a nullable collection.
+     *
+     * This property allows answering if there are mandatory parameters in the target class
+     */
+    val hasMandatoryParameter: Boolean
+
+    /**
      * A strategy for building property names. Consider the following situation:
      * * `data class Inner(val innerProp: Int)`
      * * `data class Outer(val outerProp: Inner)`
@@ -73,6 +90,11 @@ interface Context {
      * Executes given action in a context where [tolerateEmptyCollection] has given value.
      */
     fun <T> withTolerateEmptyCollection(value: Boolean, action: () -> T): T
+
+    /**
+     * Executes given action in a context where [hasMandatoryParameter] returns given value.
+     */
+    fun <T> withMandatoryParameter(value: Boolean, action: () -> T): T
 
     /**
      * Base mandatory method in this interface. Looks up a property value for the given property name.

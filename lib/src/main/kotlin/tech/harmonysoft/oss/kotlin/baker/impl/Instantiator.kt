@@ -16,9 +16,15 @@ class Instantiator<T>(private val constructor: KFunction<T>) {
         if (error.isNotBlank()) {
             return Result.failure(error)
         }
-        val paramLookupResults = retrievers.map {
-            it to mayBeRemap(it.retrieve(prefix, creator, context), it.parameter.type, context)
-        }.toMap()
+
+        val hasMandatoryParameter = retrievers.any {
+            !it.parameter.isOptional && !it.parameter.type.isMarkedNullable
+        }
+        val paramLookupResults = context.withMandatoryParameter(hasMandatoryParameter) {
+            retrievers.map {
+                it to mayBeRemap(it.retrieve(prefix, creator, context), it.parameter.type, context)
+            }.toMap()
+        }
 
         val error = paramLookupResults.values.mapNotNull {
             if (it == null || it.success) {
@@ -47,7 +53,11 @@ class Instantiator<T>(private val constructor: KFunction<T>) {
     }
 
     private fun mayBeRemap(result: Result<Any?, String>?, type: KType, context: Context): Result<Any?, String>? {
-        if (context.tolerateEmptyCollection || (result != null && !result.success)) {
+        if (context.tolerateEmptyCollection
+            || (result != null
+                && (!result.success
+                    || (result.successValue == null && type.isMarkedNullable && context.hasMandatoryParameter)))
+        ) {
             return result
         }
         val klass = type.classifier as? KClass<*> ?: return result

@@ -620,6 +620,12 @@ internal class KotlinCreatorTest {
         }
     }
 
+    @Test
+    fun `when there are multiple nested levels of collection properties then nullable type is respected`() {
+        val actual = doCreate(First::class, mapOf("second[0].i" to "2"))
+        assertThat(actual).isEqualTo(First(listOf(Second(2, null))))
+    }
+
     private fun <T : Any> doCreate(klass: KClass<T>, data: Map<String, Any>): T {
         return creator.create("", klass.createType(), Context.builder { data[it] }.build())
     }
@@ -656,6 +662,10 @@ internal class KotlinCreatorTest {
     data class CompositeNullableCollectionWithDefaultValueListHolder(val data: Collection<NullableSimpleTypeListHolderWithDefaultValue>?)
 
     data class MixedHolderWithNullableCollection(val first: Int, val second: String, val data: Set<ListElement>?)
+
+    data class First(val second: Collection<Second>)
+
+    data class Second(val i: Int, val third: Set<ListElement>?)
 }
 
 sealed class Result

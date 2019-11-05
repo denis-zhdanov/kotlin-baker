@@ -21,9 +21,16 @@ class ContextImpl(
 
     private val _tolerateEmptyCollection = ThreadLocal.withInitial { Stack<Boolean>().apply { push(true) } }
 
+    private val _hasMandatoryParameter = ThreadLocal.withInitial { Stack<Boolean>().apply { push(false) } }
+
     override val tolerateEmptyCollection: Boolean
         get() {
             return _tolerateEmptyCollection.get().peek()
+        }
+
+    override val hasMandatoryParameter: Boolean
+        get() {
+            return _hasMandatoryParameter.get().peek()
         }
 
     override fun <T> withTolerateEmptyCollection(value: Boolean, action: () -> T): T {
@@ -32,6 +39,15 @@ class ContextImpl(
             action()
         } finally {
             _tolerateEmptyCollection.get().pop()
+        }
+    }
+
+    override fun <T> withMandatoryParameter(value: Boolean, action: () -> T): T {
+        _hasMandatoryParameter.get().push(value)
+        return try {
+            action()
+        } finally {
+            _hasMandatoryParameter.get().pop()
         }
     }
 
