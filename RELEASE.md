@@ -6,6 +6,9 @@ https://repo1.maven.org/maven2/tech/harmonysoft/kotlin-baker/
 
 https://repo.jfrog.org/artifactory/libs-release-bintray/tech/harmonysoft/kotlin-baker/
 
+**v.1.0.5**
+* [Allow creating nullable nested collections if there are other non-null parameters](https://github.com/denis-zhdanov/kotlin-baker/issues/14)
+
 **v.1.0.4**
 
 * [Respect nullable collection properties](https://github.com/denis-zhdanov/kotlin-baker/issues/9)
