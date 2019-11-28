@@ -626,6 +626,24 @@ internal class KotlinCreatorTest {
         assertThat(actual).isEqualTo(First(listOf(Second(2, null))))
     }
 
+    @Test
+    fun `when nullable simple properties are not available then nulls are used`() {
+        data class Target(val i: Int?, val j: Int?)
+
+        val actual = doCreate(Target::class, emptyMap())
+        assertThat(actual).isEqualTo(Target(null, null))
+    }
+
+    @Test
+    fun `when nullable custom type properties are not available then nulls are used`() {
+        data class MyClass1(val prop: String)
+        data class MyClass2(val prop: String)
+        data class Target(val one: MyClass1?, val two: MyClass2?)
+
+        val actual = doCreate(Target::class, emptyMap())
+        assertThat(actual).isEqualTo(Target(null, null))
+    }
+
     private fun <T : Any> doCreate(klass: KClass<T>, data: Map<String, Any>): T {
         return creator.create("", klass.createType(), Context.builder { data[it] }.build())
     }

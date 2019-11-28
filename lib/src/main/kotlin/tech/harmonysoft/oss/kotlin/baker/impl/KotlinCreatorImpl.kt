@@ -18,11 +18,11 @@ class KotlinCreatorImpl : KotlinCreator {
             val enumMembersByName = (klass.java.enumConstants as Array<Enum<*>>).map {
                 it.name to it
             }.toMap()
-            val enumName = context.getPropertyValue(prefix)?.toString() ?: throw IllegalArgumentException(
+            val enumName = context.getPropertyValue(prefix)?.toString() ?: throw KotlinBakerException(
                     "Failed instantiating a enum of type '${klass.qualifiedName}' - its name is not specified "
                     + "under property '$prefix'"
             )
-            return enumMembersByName[enumName] as? T ?: throw IllegalArgumentException(
+            return enumMembersByName[enumName] as? T ?: throw KotlinBakerException(
                     "Failed finding a member of enum ${klass.qualifiedName} with name '$enumName'. "
                     + "Known names: ${enumMembersByName.keys}"
             )

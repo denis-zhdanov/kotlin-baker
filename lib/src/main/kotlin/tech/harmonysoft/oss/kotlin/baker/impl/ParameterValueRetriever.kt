@@ -26,7 +26,7 @@ class ParameterValueRetriever(val parameter: KParameter) {
      */
     fun retrieve(prefix: String, creator: KotlinCreator, context: Context): Result<Any?, String>? {
         if (name == null) {
-            throw IllegalStateException("Can't retrieve a value of parameter $parameter for path '$prefix' "
+            throw KotlinBakerException("Can't retrieve a value of parameter $parameter for path '$prefix' "
                                         + "- the parameter doesn't expose its name")
         }
 

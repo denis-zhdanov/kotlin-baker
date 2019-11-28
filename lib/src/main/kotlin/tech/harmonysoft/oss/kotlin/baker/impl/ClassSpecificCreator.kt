@@ -8,7 +8,7 @@ import kotlin.reflect.KType
 @Suppress("UNCHECKED_CAST")
 class ClassSpecificCreator<T : Any>(private val type: KType) {
 
-    private val klass: KClass<T> = type.classifier as? KClass<T> ?: throw IllegalArgumentException(
+    private val klass: KClass<T> = type.classifier as? KClass<T> ?: throw KotlinBakerException(
             "Can't instantiate type '$type' - its classifier is not a class"
     )
     private val instantiators: Collection<Instantiator<T>> = parseConstructors(klass).map { Instantiator(it) }
@@ -28,7 +28,7 @@ class ClassSpecificCreator<T : Any>(private val type: KType) {
                 failedResults[it] = candidate.failureValue
                 null
             }
-        } ?: throw IllegalArgumentException(
+        } ?: throw KotlinBakerException(
                 "Failed instantiating a ${klass.qualifiedName ?: klass.simpleName} instance. "
                 + "None of ${instantiators.size} constructors match:\n  "
                 + failedResults.entries.joinToString(separator = "\n  ") {
@@ -44,7 +44,7 @@ class ClassSpecificCreator<T : Any>(private val type: KType) {
             if (type.isMarkedNullable) {
                 rawValue as T
             } else {
-                throw IllegalArgumentException(
+                throw KotlinBakerException(
                         "Failed finding value for property '$prefix'"
                 )
             }

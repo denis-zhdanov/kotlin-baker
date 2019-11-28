@@ -21,8 +21,20 @@ class Instantiator<T>(private val constructor: KFunction<T>) {
             !it.parameter.isOptional && !it.parameter.type.isMarkedNullable
         }
         val paramLookupResults = context.withMandatoryParameter(hasMandatoryParameter) {
-            retrievers.map {
-                it to mayBeRemap(it.retrieve(prefix, creator, context), it.parameter.type, context)
+            retrievers.mapNotNull { retriever ->
+                try {
+                    val propertyValueResult = retriever.retrieve(prefix, creator, context)
+                    retriever to mayBeRemap(propertyValueResult, retriever.parameter.type, context)
+                } catch (e: KotlinBakerException) {
+                    if (!context.tolerateEmptyCollection) {
+                        throw e
+                    }
+                    when {
+                        retriever.parameter.type.isMarkedNullable -> retriever to Result.success<Any?, String>(null)
+                        retriever.parameter.isOptional -> null
+                        else -> throw e
+                    }
+                }
             }.toMap()
         }
 
