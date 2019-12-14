@@ -644,6 +644,23 @@ internal class KotlinCreatorTest {
         assertThat(actual).isEqualTo(Target(null, null))
     }
 
+    @Test
+    fun `when nullable enum property is defined then it's initialized with null if unavailable`() {
+        data class Target(val unit: TimeUnit?)
+
+        val actual = doCreate(Target::class, emptyMap())
+        assertThat(actual).isEqualTo(Target(null))
+    }
+
+    @Test
+    fun `when nested type with nullable enum property is defined then null is used if no other value is available`() {
+        data class Leaf(val value: Int, val unit: TimeUnit?)
+        data class Target(val leaf: Leaf)
+
+        val actual = doCreate(Target::class, mapOf("leaf.value" to "1"))
+        assertThat(actual).isEqualTo(Target(Leaf(1, null)))
+    }
+
     private fun <T : Any> doCreate(klass: KClass<T>, data: Map<String, Any>): T {
         return creator.create("", klass.createType(), Context.builder { data[it] }.build())
     }
