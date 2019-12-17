@@ -446,7 +446,7 @@ internal class KotlinCreatorTest {
     }
 
     @Test
-    fun `when map of Any value is used then context value is correctly propagated`() {
+    fun `when map of Any value is used then simple context value is correctly propagated`() {
         data class Target(val data: Map<String, Any>)
 
         val input = mapOf(
@@ -661,8 +661,99 @@ internal class KotlinCreatorTest {
         assertThat(actual).isEqualTo(Target(Leaf(1, null)))
     }
 
+    @Test
+    fun `when Map is used as a type Any then it's correctly picked up`() {
+        data class Target(val data: Any)
+
+        val input = mapOf(
+                "data.one" to "1",
+                "data.two" to "2"
+        )
+        val actual = createWithMapKeys(Target::class, input)
+        assertThat(actual).isEqualTo(Target(mapOf("one" to "1", "two" to "2")))
+    }
+
+    @Test
+    fun `when Map with nested Map is used as a type Any then it's correctly picked up`() {
+        data class Target(val data: Any)
+
+        val input = mapOf(
+                "data.one" to "1",
+                "data.two.one" to "2",
+                "data.two.two" to "3",
+                "data.three.one.one" to "4",
+                "data.three.one.two" to "5",
+                "data.three.two" to "6"
+        )
+        val actual = createWithMapKeys(Target::class, input)
+        assertThat(actual).isEqualTo(Target(mapOf(
+                "one" to "1",
+                "two" to mapOf("one" to "2",
+                               "two" to "3"),
+                "three" to mapOf("one" to mapOf("one" to "4",
+                                                "two" to "5"),
+                                 "two" to "6")
+        )))
+    }
+
+    @Test
+    fun `when List is used as a type Any then it's correctly picked up`() {
+        data class Target(val data: Any)
+
+        val input = mapOf(
+                "data[0]" to "1",
+                "data[1]" to "2"
+        )
+        val actual = createWithMapKeys(Target::class, input)
+        assertThat(actual).isEqualTo(Target(listOf("1", "2")))
+    }
+
+    @Test
+    fun `when List of Map is used as a type Any then it's correctly picked up`() {
+        data class Target(val data: Any)
+
+        val input = mapOf(
+                "data[0].one" to "1",
+                "data[0].two" to "2",
+                "data[1]" to "3"
+        )
+        val actual = createWithMapKeys(Target::class, input)
+        assertThat(actual).isEqualTo(Target(listOf(mapOf("one" to "1",
+                                                         "two" to "2"),
+                                                   "3")))
+    }
+
+    @Test
+    fun `when Map of List is used as a type Any then it's correctly picked up`() {
+        data class Target(val data: Any)
+
+        val input = mapOf(
+                "data.one[0].one" to "1",
+                "data.one[0].two" to "2",
+                "data.one[1]" to "3",
+                "data.two" to "4"
+        )
+
+        val actual = createWithMapKeys(Target::class, input)
+        assertThat(actual).isEqualTo(Target(mapOf(
+                "one" to listOf(mapOf("one" to "1",
+                                      "two" to "2"),
+                                "3"),
+                "two" to "4"
+        )))
+    }
+
     private fun <T : Any> doCreate(klass: KClass<T>, data: Map<String, Any>): T {
         return creator.create("", klass.createType(), Context.builder { data[it] }.build())
+    }
+
+    private fun <T : Any> createWithMapKeys(klass: KClass<T>, data: Map<String, Any>): T {
+        val context = Context.builder {
+            data[it]
+        }.withMapKeyStrategy { _, _ ->
+            setOf("one", "two", "three")
+        }.build()
+        return creator.create("", klass.createType(), context)
     }
 
     // We define this classes not in corresponding methods because of https://youtrack.jetbrains.com/issue/KT-10397

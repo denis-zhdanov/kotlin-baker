@@ -2,13 +2,17 @@ package tech.harmonysoft.oss.kotlin.baker.impl
 
 import tech.harmonysoft.oss.kotlin.baker.Context
 import tech.harmonysoft.oss.kotlin.baker.KotlinCreator
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
+import kotlin.reflect.KType
+import kotlin.reflect.full.createType
 import kotlin.reflect.full.isSuperclassOf
 
 class ParameterValueRetriever(val parameter: KParameter) {
 
     private val name = parameter.name
+    private val remainingMapDiscoveryDepth = ThreadLocal.withInitial { AtomicInteger(5) }
 
     val error: String? = if (name == null) {
         "can't extract name for parameter #${parameter.index}"
@@ -36,6 +40,26 @@ class ParameterValueRetriever(val parameter: KParameter) {
         )
 
         val propertyName = context.getRegularPropertyName(prefix, name)
+        return doRetrieve(propertyName = propertyName,
+                          creator = creator,
+                          context = context,
+                          type = parameter.type,
+                          klass = klass,
+                          optional = parameter.isOptional)
+    }
+
+    private fun doRetrieve(
+        propertyName: String,
+        creator: KotlinCreator,
+        context: Context,
+        type: KType,
+        klass: KClass<*>,
+        optional: Boolean
+    ): Result<Any?, String>? {
+        if (klass == Any::class) {
+            return retrieveAny(propertyName, creator, context)
+        }
+
         if (context.isSimpleType(klass)) {
             return retrieveSimpleValue(propertyName, klass, context)
         }
@@ -49,14 +73,73 @@ class ParameterValueRetriever(val parameter: KParameter) {
         }
 
         return try {
-            Result.success(creator.create(propertyName, parameter.type, context))
+            Result.success(creator.create(propertyName, type, context))
         } catch (e: Exception) {
-            if (parameter.isOptional) {
+            if (optional) {
                 null
             } else {
                 throw e
             }
         }
+    }
+
+    /**
+     * We want to be smart enough in case of [Any] type and differentiate between the following possible result types:
+     * * [String]
+     * * [List<String>][List]
+     * * [Map<String, Any>][Map]
+     */
+    private fun retrieveAny(propertyName: String, creator: KotlinCreator, context: Context): Result<Any?, String>? {
+        return when {
+            isMapLike(propertyName, context) -> retrieveMap(propertyName = propertyName,
+                                                            creator = creator,
+                                                            context = context,
+                                                            keyType = STRING_TYPE,
+                                                            keyClass = String::class,
+                                                            valueType = ANY_TYPE,
+                                                            valueClass = Any::class,
+                                                            optional = false)
+            isCollectionLike(propertyName, context) -> retrieveCollection(collectionClass = List::class,
+                                                                          propertyName = propertyName,
+                                                                          creator = creator,
+                                                                          context = context,
+                                                                          valueType = ANY_TYPE,
+                                                                          valueClass = Any::class,
+                                                                          optional = false,
+                                                                          nullable = false)
+            else -> retrieveSimpleValue(propertyName, Any::class, context)
+        }
+    }
+
+    private fun isMapLike(propertyName: String, context: Context): Boolean {
+        val remainingDepth = remainingMapDiscoveryDepth.get()
+        if (remainingDepth.decrementAndGet() < 0) {
+            remainingDepth.incrementAndGet()
+            return false
+        }
+        try {
+            val keys = context.getMapKeys(propertyName, STRING_TYPE).map {
+                context.getMapValuePropertyName(propertyName, it)
+            }
+            for (key in keys) {
+                if (context.getPropertyValue(key) != null) {
+                    return true
+                }
+            }
+            return keys.any {
+                isMapLike(it, context)
+            }
+        } finally {
+            remainingDepth.incrementAndGet()
+        }
+    }
+
+    private fun isCollectionLike(propertyName: String, context: Context): Boolean {
+        val name = context.getCollectionElementPropertyName(propertyName, 0)
+        if (context.getPropertyValue(name) != null) {
+            return true
+        }
+        return isMapLike(name, context)
     }
 
     private fun retrieveSimpleValue(
@@ -105,43 +188,61 @@ class ParameterValueRetriever(val parameter: KParameter) {
                 "can't derive type parameter class for property '$propertyName' of type ${parameter.type}"
         )
 
+        return retrieveCollection(collectionClass = collectionClass,
+                                  propertyName = propertyName,
+                                  creator = creator,
+                                  context = context,
+                                  valueType = type,
+                                  valueClass = typeClass,
+                                  optional = parameter.isOptional,
+                                  nullable = parameter.type.isMarkedNullable)
+    }
+
+    private fun retrieveCollection(
+        collectionClass: KClass<*>,
+        propertyName: String,
+        creator: KotlinCreator,
+        context: Context,
+        valueType: KType,
+        valueClass: KClass<*>,
+        nullable: Boolean,
+        optional: Boolean
+    ) : Result<Any?, String>? {
         var i = 0
         val parameters = context.createCollection(collectionClass)
         while (true) {
             val collectionElementPropertyName = context.getCollectionElementPropertyName(propertyName, i)
             i++
-            if (context.isSimpleType(typeClass)) {
-                val rawValue = context.getPropertyValue(collectionElementPropertyName) ?: break
-                parameters.add(context.convertIfNecessary(rawValue, typeClass))
-                continue
-            } else if (context.isCollection(typeClass)) {
-                val r = retrieveCollection(typeClass, collectionElementPropertyName, creator, context)
-                if (r != null && r.success) {
-                    parameters.add(r)
-                } else {
-                    return Result.failure("can't create a collection for property "
-                                          + "$collectionElementPropertyName - ${r?.failureValue}")
+            var stop = true
+            context.withTolerateEmptyCollection(false) {
+                doRetrieve(propertyName = collectionElementPropertyName,
+                           creator = creator,
+                           context = context,
+                           type = valueType,
+                           klass = valueClass,
+                           optional = true
+                )?.takeIf {
+                    it.success
+                }?.let {
+                    it.successValue
+                }?.apply {
+                    parameters += this
+                    stop = false
                 }
-            } else {
-                try {
-                    context.withTolerateEmptyCollection(false) {
-                        val element = creator.create<Any>(collectionElementPropertyName, type, context)
-                        parameters.add(element)
-                    }
-                } catch (e: Exception) {
-                    break
-                }
+            }
+            if (stop) {
+                break
             }
         }
 
         return when {
             parameters.isEmpty() -> {
                 when {
-                    parameter.type.isMarkedNullable -> Result.success<Any?, String>(null)
-                    parameter.isOptional -> null
+                    nullable -> Result.success<Any?, String>(null)
+                    optional -> null
                     else -> Result.failure(
-                            "Can't instantiate collection property '${parameter.name}' for type "
-                            + "${parameter.type} - no data is defined for it and the property is "
+                            "Can't instantiate collection property '$propertyName' for type "
+                            + "$collectionClass - no data is defined for it and the property is "
                             + "mandatory (non-nullable and doesn't have default value). Tried to find the "
                             + "value using key '${context.getCollectionElementPropertyName(propertyName, 0)}'")
                 }
@@ -175,27 +276,62 @@ class ParameterValueRetriever(val parameter: KParameter) {
         val valueClass = valueType.classifier as? KClass<*> ?: throw IllegalArgumentException(
                 "Failed instantiating a Map property '$propertyName' - can't derive value class for $parameter"
         )
+        return retrieveMap(propertyName = propertyName,
+                           creator = creator,
+                           context = context,
+                           keyType = keyType,
+                           keyClass = keyClass,
+                           valueType = valueType,
+                           valueClass = valueClass,
+                           optional = parameter.isOptional)
+    }
+
+    private fun retrieveMap(
+            propertyName: String,
+            creator: KotlinCreator,
+            context: Context,
+            keyType: KType,
+            keyClass: KClass<*>,
+            valueType: KType,
+            valueClass: KClass<*>,
+            optional: Boolean
+    ): Result<Any?, String>? {
         val map = context.createMap()
         for (key in context.getMapKeys(propertyName, keyType)) {
             val valuePropertyName = context.getMapValuePropertyName(propertyName, key)
-            if (context.isSimpleType(valueClass)) {
-                val rawValue = context.getPropertyValue(valuePropertyName)
-                if (rawValue != null) {
-                    val convertedValue = context.convertIfNecessary(rawValue, valueClass)
-                    map[context.convertIfNecessary(key, keyClass)] = convertedValue
+            try {
+                doRetrieve(propertyName = valuePropertyName,
+                           creator = creator,
+                           context = context,
+                           type = valueType,
+                           klass = valueClass,
+                           optional = false
+                )?.takeIf {
+                    it.success
+                }?.let {
+                    val value = it.successValue
+                    if (value != null) {
+                        map[context.convertIfNecessary(key, keyClass)] = value
+                    }
                 }
-            } else {
-                try {
-                    val value = creator.create<Any>(valuePropertyName, valueType, context)
-                    map[context.convertIfNecessary(key, keyClass)] = value
-                } catch (ignore: Exception) {
-                }
+            } catch (ignore: Exception) {
             }
+        }
+        if (map.isEmpty() && !optional) {
+            throw IllegalArgumentException(
+                    "Can't build a Map<${keyClass.simpleName}, ${valueClass.simpleName}> for base property "
+                    + "'$propertyName' - it's not optional and no key-value pairs for it are found"
+            )
         }
         return Result.success(map)
     }
 
     override fun toString(): String {
         return "$parameter value retriever"
+    }
+
+    companion object {
+        private val STRING_TYPE = String::class.createType()
+        private val ANY_TYPE = Any::class.createType()
     }
 }
