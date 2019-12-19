@@ -6,6 +6,9 @@ https://repo1.maven.org/maven2/tech/harmonysoft/kotlin-baker/
 
 https://repo.jfrog.org/artifactory/libs-release-bintray/tech/harmonysoft/kotlin-baker/
 
+**v.1.0.7**
+* [Auto-detect underlying type for static Any type](https://github.com/denis-zhdanov/kotlin-baker/issues/18)
+
 **v.1.0.6**
 * [Correctly handle a situation when nullable custom types data is not available](https://github.com/denis-zhdanov/kotlin-baker/issues/16)
 

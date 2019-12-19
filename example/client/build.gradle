@@ -1,4 +1,4 @@
 dependencies {
-    implementation 'tech.harmonysoft:kotlin-baker:1.0.6'
+    implementation 'tech.harmonysoft:kotlin-baker:1.0.7'
     implementation 'org.springframework.cloud:spring-cloud-starter-config'
 }
