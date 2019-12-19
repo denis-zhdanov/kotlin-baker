@@ -122,7 +122,9 @@ class ParameterValueRetriever(val parameter: KParameter) {
                 context.getMapValuePropertyName(propertyName, it)
             }
             for (key in keys) {
-                if (context.getPropertyValue(key) != null) {
+                if (context.getPropertyValue(key) != null
+                    || context.getPropertyValue(context.getCollectionElementPropertyName(key, 0)) != null
+                ) {
                     return true
                 }
             }

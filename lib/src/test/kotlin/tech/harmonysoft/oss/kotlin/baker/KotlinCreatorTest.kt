@@ -743,6 +743,18 @@ internal class KotlinCreatorTest {
         )))
     }
 
+    @Test
+    fun `when Map with List value is used as a type Any then it's correctly picked up`() {
+        data class Target(val data: Any)
+
+        val input = mapOf(
+                "data.one[0]" to "1",
+                "data.one[1]" to "2"
+        )
+        val actual = createWithMapKeys(Target::class, input)
+        assertThat(actual).isEqualTo(Target(mapOf("one" to listOf("1", "2"))))
+    }
+
     private fun <T : Any> doCreate(klass: KClass<T>, data: Map<String, Any>): T {
         return creator.create("", klass.createType(), Context.builder { data[it] }.build())
     }
