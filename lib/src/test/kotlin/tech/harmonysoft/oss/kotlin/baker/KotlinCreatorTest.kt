@@ -755,6 +755,22 @@ internal class KotlinCreatorTest {
         assertThat(actual).isEqualTo(Target(mapOf("one" to listOf("1", "2"))))
     }
 
+    @Test
+    fun `when nullable Map data is unavailable and it's the only property then it's correctly picked up`() {
+        data class Target(val data: Map<String, String>?)
+
+        val actual = doCreate(Target::class, emptyMap())
+        assertThat(actual).isEqualTo(Target(null))
+    }
+
+    @Test
+    fun `when nullable Map data is unavailable and it's not the only property then it's correctly picked up`() {
+        data class Target(val i: Int?, val data: Map<String, String>?)
+
+        val actual = doCreate(Target::class, emptyMap())
+        assertThat(actual).isEqualTo(Target(null, null))
+    }
+
     private fun <T : Any> doCreate(klass: KClass<T>, data: Map<String, Any>): T {
         return creator.create("", klass.createType(), Context.builder { data[it] }.build())
     }

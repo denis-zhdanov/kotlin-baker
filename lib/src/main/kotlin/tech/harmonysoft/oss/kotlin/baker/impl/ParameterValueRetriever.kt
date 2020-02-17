@@ -98,7 +98,8 @@ class ParameterValueRetriever(val parameter: KParameter) {
                                                             keyClass = String::class,
                                                             valueType = ANY_TYPE,
                                                             valueClass = Any::class,
-                                                            optional = false)
+                                                            optional = false,
+                                                            nullable = false)
             isCollectionLike(propertyName, context) -> retrieveCollection(collectionClass = List::class,
                                                                           propertyName = propertyName,
                                                                           creator = creator,
@@ -285,7 +286,8 @@ class ParameterValueRetriever(val parameter: KParameter) {
                            keyClass = keyClass,
                            valueType = valueType,
                            valueClass = valueClass,
-                           optional = parameter.isOptional)
+                           optional = parameter.isOptional,
+                           nullable = parameter.type.isMarkedNullable)
     }
 
     private fun retrieveMap(
@@ -296,7 +298,8 @@ class ParameterValueRetriever(val parameter: KParameter) {
             keyClass: KClass<*>,
             valueType: KType,
             valueClass: KClass<*>,
-            optional: Boolean
+            optional: Boolean,
+            nullable: Boolean
     ): Result<Any?, String>? {
         val map = context.createMap()
         for (key in context.getMapKeys(propertyName, keyType)) {
@@ -319,13 +322,17 @@ class ParameterValueRetriever(val parameter: KParameter) {
             } catch (ignore: Exception) {
             }
         }
-        if (map.isEmpty() && !optional) {
-            throw IllegalArgumentException(
-                    "Can't build a Map<${keyClass.simpleName}, ${valueClass.simpleName}> for base property "
-                    + "'$propertyName' - it's not optional and no key-value pairs for it are found"
-            )
+        return when {
+            map.isEmpty() -> when {
+                optional -> Result.success<Any?, String>(null)
+                nullable -> null
+                else -> throw IllegalArgumentException(
+                        "Can't build a Map<${keyClass.simpleName}, ${valueClass.simpleName}> for base property "
+                        + "'$propertyName' - it's not optional and no key-value pairs for it are found"
+                )
+            }
+            else -> Result.success(map)
         }
-        return Result.success(map)
     }
 
     override fun toString(): String {

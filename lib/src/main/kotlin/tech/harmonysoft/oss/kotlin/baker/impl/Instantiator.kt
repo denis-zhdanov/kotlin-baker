@@ -50,10 +50,16 @@ class Instantiator<T>(private val constructor: KFunction<T>) {
             return Result.failure(error)
         }
 
-        val arguments = paramLookupResults.filter {
-            it.value != null
-        }.map {
-            it.key.parameter to it.value!!.successValue
+        val arguments = paramLookupResults.mapNotNull { (retriever, result) ->
+            if (result == null) {
+                if (retriever.parameter.isOptional) {
+                    null
+                } else {
+                    retriever.parameter to null
+                }
+            } else {
+                retriever.parameter to result.successValue
+            }
         }
         return try {
             Result.success(constructor.callBy(arguments.toMap()))
