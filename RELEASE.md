@@ -6,6 +6,9 @@ https://repo1.maven.org/maven2/tech/harmonysoft/kotlin-baker/
 
 https://repo.jfrog.org/artifactory/libs-release-bintray/tech/harmonysoft/kotlin-baker/
 
+**v.1.0.9**
+* [Respect nullable Map property](https://github.com/denis-zhdanov/kotlin-baker/issues/43)
+
 **v.1.0.8**
 * [Auto-detect Map<String, List<String>> for Any static type](https://github.com/denis-zhdanov/kotlin-baker/issues/19)
 
