@@ -45,7 +45,7 @@ class ParameterValueRetriever(val parameter: KParameter) {
                           context = context,
                           type = parameter.type,
                           klass = klass,
-                          optional = parameter.isOptional)
+                          optional = parameter.isOptional || parameter.type.isMarkedNullable)
     }
 
     private fun doRetrieve(
