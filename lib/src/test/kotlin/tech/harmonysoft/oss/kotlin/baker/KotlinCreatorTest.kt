@@ -771,6 +771,30 @@ internal class KotlinCreatorTest {
         assertThat(actual).isEqualTo(Target(null, null))
     }
 
+    @Test
+    fun `when nullable enum property is unavailable then null is used`() {
+        data class Inner(val data: DayOfWeek?)
+        data class Outer(val data: Inner)
+
+        val actual = doCreate(Outer::class, emptyMap())
+        assertThat(actual).isEqualTo(Outer(Inner(null)))
+    }
+
+    @Test
+    fun `when Inner type contains nullable enum parameter and it's not the only property and outer type contains collection of Inner then it's correctly picked up`() {
+        val actual = doCreate(
+            ObjectsWithOptionalEnumParameterHolder::class,
+            mapOf(
+                "data[0].testInt" to "1",
+                "data[0].dayOfWeek" to "FRIDAY",
+                "data[1].testInt" to "2"))
+        assertThat(actual).isEqualTo(
+            ObjectsWithOptionalEnumParameterHolder(
+                listOf(
+                    InnerWithOptionalEnum(1, DayOfWeek.FRIDAY),
+                    InnerWithOptionalEnum(2, null))))
+    }
+
     private fun <T : Any> doCreate(klass: KClass<T>, data: Map<String, Any>): T {
         return creator.create("", klass.createType(), Context.builder { data[it] }.build())
     }
@@ -820,6 +844,10 @@ internal class KotlinCreatorTest {
     data class First(val second: Collection<Second>)
 
     data class Second(val i: Int, val third: Set<ListElement>?)
+
+    data class InnerWithOptionalEnum(val testInt: Int, val dayOfWeek: DayOfWeek?)
+
+    data class ObjectsWithOptionalEnumParameterHolder(val data: List<InnerWithOptionalEnum>)
 }
 
 sealed class Result
