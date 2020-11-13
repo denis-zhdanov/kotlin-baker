@@ -781,7 +781,7 @@ internal class KotlinCreatorTest {
     }
 
     @Test
-    fun `when Inner type contains nullable enum parameter and it's not the only property and outer type contains collection of Inner then it's correctly picked up`() {
+    fun `when a collection contains a class with nullable enum and no data for it is available then it's correctly picked up`() {
         val actual = doCreate(
             ObjectsWithOptionalEnumParameterHolder::class,
             mapOf(
