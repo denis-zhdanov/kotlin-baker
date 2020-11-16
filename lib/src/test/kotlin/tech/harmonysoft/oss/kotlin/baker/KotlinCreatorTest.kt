@@ -795,6 +795,25 @@ internal class KotlinCreatorTest {
                     InnerWithOptionalEnum(2, null))))
     }
 
+    @Test
+    fun `when map's value is a collection then it's correctly picked up`() {
+        val actual = doCreate(
+            MapWithCollectionValueHolder::class,
+            mapOf(
+                "prop.FIRST[0].value" to 1,
+                "prop.FIRST[1].value" to 2,
+                "prop.SECOND[0].value" to 3
+            )
+        )
+
+        assertThat(actual).isEqualTo(
+            MapWithCollectionValueHolder(mapOf(
+                Key.FIRST to listOf(ListElement(1), ListElement(2)),
+                Key.SECOND to listOf(ListElement(3))
+            ))
+        )
+    }
+
     private fun <T : Any> doCreate(klass: KClass<T>, data: Map<String, Any>): T {
         return creator.create("", klass.createType(), Context.builder { data[it] }.build())
     }
@@ -830,6 +849,8 @@ internal class KotlinCreatorTest {
     data class MapHolder(val prop: Map<Key, Int>)
 
     data class CompositeMapHolder(val prop: Map<Key, MapHolder>)
+
+    data class MapWithCollectionValueHolder(val prop: Map<Key, List<ListElement>>)
 
     data class NullableListHolder(val e: ListElement, val s: Set<ListElement>?)
 
