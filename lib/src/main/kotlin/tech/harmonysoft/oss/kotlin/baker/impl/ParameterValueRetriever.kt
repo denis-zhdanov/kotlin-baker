@@ -31,21 +31,21 @@ class ParameterValueRetriever(val parameter: KParameter) {
     fun retrieve(prefix: String, creator: KotlinCreator, context: Context): Result<Any?, String>? {
         if (name == null) {
             throw KotlinBakerException("Can't retrieve a value of parameter $parameter for path '$prefix' "
-                                        + "- the parameter doesn't expose its name")
+                + "- the parameter doesn't expose its name")
         }
 
         val klass = parameter.type.classifier as? KClass<*> ?: return Result.failure(
-                "type '${parameter.type}' for argument '$name' for path '$prefix' "
+            "type '${parameter.type}' for argument '$name' for path '$prefix' "
                 + "is not a ${KClass::class.qualifiedName}"
         )
 
         val propertyName = context.getRegularPropertyName(prefix, name)
         return doRetrieve(propertyName = propertyName,
-                          creator = creator,
-                          context = context,
-                          type = parameter.type,
-                          klass = klass,
-                          optional = parameter.isOptional || parameter.type.isMarkedNullable)
+            creator = creator,
+            context = context,
+            type = parameter.type,
+            klass = klass,
+            optional = parameter.isOptional || parameter.type.isMarkedNullable)
     }
 
     private fun doRetrieve(
@@ -69,7 +69,7 @@ class ParameterValueRetriever(val parameter: KParameter) {
         }
 
         if (Map::class.isSuperclassOf(klass)) {
-            return retrieveMap(propertyName, creator, context)
+            return retrieveMap(type, propertyName, creator, context)
         }
 
         return try {
@@ -92,22 +92,22 @@ class ParameterValueRetriever(val parameter: KParameter) {
     private fun retrieveAny(propertyName: String, creator: KotlinCreator, context: Context): Result<Any?, String>? {
         return when {
             isMapLike(propertyName, context) -> retrieveMap(propertyName = propertyName,
-                                                            creator = creator,
-                                                            context = context,
-                                                            keyType = STRING_TYPE,
-                                                            keyClass = String::class,
-                                                            valueType = ANY_TYPE,
-                                                            valueClass = Any::class,
-                                                            optional = false,
-                                                            nullable = false)
+                creator = creator,
+                context = context,
+                keyType = STRING_TYPE,
+                keyClass = String::class,
+                valueType = ANY_TYPE,
+                valueClass = Any::class,
+                optional = false,
+                nullable = false)
             isCollectionLike(propertyName, context) -> retrieveCollection(collectionClass = List::class,
-                                                                          propertyName = propertyName,
-                                                                          creator = creator,
-                                                                          context = context,
-                                                                          valueType = ANY_TYPE,
-                                                                          valueClass = Any::class,
-                                                                          optional = false,
-                                                                          nullable = false)
+                propertyName = propertyName,
+                creator = creator,
+                context = context,
+                valueType = ANY_TYPE,
+                valueClass = Any::class,
+                optional = false,
+                nullable = false)
             else -> retrieveSimpleValue(propertyName, Any::class, context)
         }
     }
@@ -146,9 +146,9 @@ class ParameterValueRetriever(val parameter: KParameter) {
     }
 
     private fun retrieveSimpleValue(
-            propertyName: String,
-            klass: KClass<*>,
-            context: Context
+        propertyName: String,
+        klass: KClass<*>,
+        context: Context
     ): Result<Any?, String>? {
         val rawValue = context.getPropertyValue(propertyName)
         return if (rawValue == null) {
@@ -163,16 +163,16 @@ class ParameterValueRetriever(val parameter: KParameter) {
     }
 
     private fun retrieveCollection(
-            collectionClass: KClass<*>,
-            collectionType: KType,
-            propertyName: String,
-            creator: KotlinCreator,
-            context: Context
+        collectionClass: KClass<*>,
+        collectionType: KType,
+        propertyName: String,
+        creator: KotlinCreator,
+        context: Context
     ) : Result<Any?, String>? {
         val invalidValue = context.getPropertyValue(propertyName)
         if (invalidValue != null) {
             throw IllegalArgumentException(
-                    "Expected to find collection data as a parameter '${parameter.name}' of type ${parameter.type} "
+                "Expected to find collection data as a parameter '${parameter.name}' of type ${parameter.type} "
                     + "under base property '$propertyName' but found a simple value '$invalidValue' instead"
             )
         }
@@ -180,26 +180,26 @@ class ParameterValueRetriever(val parameter: KParameter) {
         val typeArguments = collectionType.arguments
         if (typeArguments.size != 1) {
             throw IllegalArgumentException(
-                    "Failed retrieving value of a '${parameter.type}' property for path '$propertyName' - expected "
+                "Failed retrieving value of a '${parameter.type}' property for path '$propertyName' - expected "
                     + "to find a single type argument, but found ${typeArguments.size}: $typeArguments"
             )
         }
 
         val type = typeArguments[0].type ?: return Result.failure(
-                "can't derive collection type for property '$propertyName' of type ${parameter.type}"
+            "can't derive collection type for property '$propertyName' of type ${parameter.type}"
         )
         val typeClass = type.classifier as? KClass<*> ?: return Result.failure(
-                "can't derive type parameter class for property '$propertyName' of type ${parameter.type}"
+            "can't derive type parameter class for property '$propertyName' of type ${parameter.type}"
         )
 
         return retrieveCollection(collectionClass = collectionClass,
-                                  propertyName = propertyName,
-                                  creator = creator,
-                                  context = context,
-                                  valueType = type,
-                                  valueClass = typeClass,
-                                  optional = parameter.isOptional,
-                                  nullable = parameter.type.isMarkedNullable)
+            propertyName = propertyName,
+            creator = creator,
+            context = context,
+            valueType = type,
+            valueClass = typeClass,
+            optional = parameter.isOptional,
+            nullable = parameter.type.isMarkedNullable)
     }
 
     private fun retrieveCollection(
@@ -220,11 +220,11 @@ class ParameterValueRetriever(val parameter: KParameter) {
             var stop = true
             context.withTolerateEmptyCollection(false) {
                 doRetrieve(propertyName = collectionElementPropertyName,
-                           creator = creator,
-                           context = context,
-                           type = valueType,
-                           klass = valueClass,
-                           optional = true
+                    creator = creator,
+                    context = context,
+                    type = valueType,
+                    klass = valueClass,
+                    optional = true
                 )?.takeIf {
                     it.success
                 }?.let {
@@ -245,7 +245,7 @@ class ParameterValueRetriever(val parameter: KParameter) {
                     nullable -> Result.success<Any?, String>(null)
                     optional -> null
                     else -> Result.failure(
-                            "Can't instantiate collection property '$propertyName' for type "
+                        "Can't instantiate collection property '$propertyName' for type "
                             + "$collectionClass - no data is defined for it and the property is "
                             + "mandatory (non-nullable and doesn't have default value). Tried to find the "
                             + "value using key '${context.getCollectionElementPropertyName(propertyName, 0)}'")
@@ -256,62 +256,65 @@ class ParameterValueRetriever(val parameter: KParameter) {
     }
 
     private fun retrieveMap(
-            propertyName: String,
-            creator: KotlinCreator,
-            context: Context
+        mapType: KType,
+        propertyName: String,
+        creator: KotlinCreator,
+        context: Context
     ): Result<Any?, String>? {
         val invalidValue = context.getPropertyValue(propertyName)
         if (invalidValue != null) {
             throw IllegalArgumentException(
-                    "Expected to find map data as a parameter '${parameter.name}' of type ${parameter.type} "
+                "Expected to find map data as a parameter '${parameter.name}' of type ${parameter.type} "
                     + "under base property '$propertyName' but found a simple value '$invalidValue' instead"
             )
         }
 
-        val keyType = parameter.type.arguments[0].type ?: throw IllegalArgumentException(
-                "Failed instantiating a Map property '$propertyName' - no key type info is available for $parameter"
+        val keyType = mapType.arguments[0].type ?: throw IllegalArgumentException(
+            "Failed instantiating a Map property '$propertyName' - no key type info is available for $parameter"
         )
         val keyClass = keyType.classifier as? KClass<*> ?: throw IllegalArgumentException(
-                "Failed instantiating a Map property '$propertyName' - can't derive key class for $parameter"
+            "Failed instantiating a Map property '$propertyName' - can't derive key class for $parameter"
         )
-        val valueType = parameter.type.arguments[1].type ?: throw IllegalArgumentException(
-                "Failed instantiating a Map property '$propertyName' - no value type info is available for $parameter"
+        val valueType = mapType.arguments[1].type ?: throw IllegalArgumentException(
+            "Failed instantiating a Map property '$propertyName' - no value type info is available for $parameter"
         )
         val valueClass = valueType.classifier as? KClass<*> ?: throw IllegalArgumentException(
-                "Failed instantiating a Map property '$propertyName' - can't derive value class for $parameter"
+            "Failed instantiating a Map property '$propertyName' - can't derive value class for $parameter"
         )
         return retrieveMap(propertyName = propertyName,
-                           creator = creator,
-                           context = context,
-                           keyType = keyType,
-                           keyClass = keyClass,
-                           valueType = valueType,
-                           valueClass = valueClass,
-                           optional = parameter.isOptional,
-                           nullable = parameter.type.isMarkedNullable)
+            creator = creator,
+            context = context,
+            keyType = keyType,
+            keyClass = keyClass,
+            valueType = valueType,
+            valueClass = valueClass,
+            optional = parameter.isOptional,
+            nullable = parameter.type.isMarkedNullable)
     }
 
     private fun retrieveMap(
-            propertyName: String,
-            creator: KotlinCreator,
-            context: Context,
-            keyType: KType,
-            keyClass: KClass<*>,
-            valueType: KType,
-            valueClass: KClass<*>,
-            optional: Boolean,
-            nullable: Boolean
+        propertyName: String,
+        creator: KotlinCreator,
+        context: Context,
+        keyType: KType,
+        keyClass: KClass<*>,
+        valueType: KType,
+        valueClass: KClass<*>,
+        optional: Boolean,
+        nullable: Boolean
     ): Result<Any?, String>? {
         val map = context.createMap()
         for (key in context.getMapKeys(propertyName, keyType)) {
             val valuePropertyName = context.getMapValuePropertyName(propertyName, key)
+
             try {
-                doRetrieve(propertyName = valuePropertyName,
-                           creator = creator,
-                           context = context,
-                           type = valueType,
-                           klass = valueClass,
-                           optional = false
+                doRetrieve(
+                    propertyName = valuePropertyName,
+                    creator = creator,
+                    context = context,
+                    type = valueType,
+                    klass = valueClass,
+                    optional = false
                 )?.takeIf {
                     it.success
                 }?.let {
@@ -328,7 +331,7 @@ class ParameterValueRetriever(val parameter: KParameter) {
                 optional -> Result.success<Any?, String>(null)
                 nullable -> null
                 else -> throw IllegalArgumentException(
-                        "Can't build a Map<${keyClass.simpleName}, ${valueClass.simpleName}> for base property "
+                    "Can't build a Map<${keyClass.simpleName}, ${valueClass.simpleName}> for base property "
                         + "'$propertyName' - it's not optional and no key-value pairs for it are found"
                 )
             }

@@ -254,9 +254,9 @@ internal class KotlinCreatorTest {
         data class Target(val prop: List<Int>)
 
         val result = doCreate(Target::class, mapOf(
-                "prop[0]" to "1",
-                "prop[1]" to 2,
-                "prop[2]" to '3'
+            "prop[0]" to "1",
+            "prop[1]" to 2,
+            "prop[2]" to '3'
         ))
         assertThat(result.prop).containsOnly(1, 2, 3)
     }
@@ -266,9 +266,9 @@ internal class KotlinCreatorTest {
         data class Target(val prop: Set<Int>)
 
         val result = doCreate(Target::class, mapOf(
-                "prop[0]" to "1",
-                "prop[1]" to 2,
-                "prop[2]" to '3'
+            "prop[0]" to "1",
+            "prop[1]" to 2,
+            "prop[2]" to '3'
         ))
         assertThat(result.prop).containsOnly(1, 2, 3)
     }
@@ -276,9 +276,9 @@ internal class KotlinCreatorTest {
     @Test
     fun `when List property of non-simple values is used then it's correctly applied`() {
         val result = doCreate(NonSimpleTypeListHolder::class, mapOf(
-                "prop[0].value" to 1,
-                "prop[1].value" to "2",
-                "prop[2].value" to '3'
+            "prop[0].value" to 1,
+            "prop[1].value" to "2",
+            "prop[2].value" to '3'
         ))
         assertThat(result.prop).containsOnly(ListElement(1), ListElement(2), ListElement(3))
     }
@@ -286,37 +286,37 @@ internal class KotlinCreatorTest {
     @Test
     fun `when composite structure with non-simple type is defined then it's correctly created`() {
         val result = doCreate(CompositeNonSimpleListHolder::class, mapOf(
-                "prop2[0].prop[0].value" to 1,
-                "prop2[0].prop[1].value" to 2,
-                "prop2[1].prop[0].value" to "3"
+            "prop2[0].prop[0].value" to 1,
+            "prop2[0].prop[1].value" to 2,
+            "prop2[1].prop[0].value" to "3"
         ))
         assertThat(result).isEqualTo(CompositeNonSimpleListHolder(listOf(
-                NonSimpleTypeListHolder(listOf(
-                        ListElement(1),
-                        ListElement(2)
-                )),
-                NonSimpleTypeListHolder(listOf(ListElement(3)))
+            NonSimpleTypeListHolder(listOf(
+                ListElement(1),
+                ListElement(2)
+            )),
+            NonSimpleTypeListHolder(listOf(ListElement(3)))
         )))
     }
 
     @Test
     fun `when composite structure with simple type is defined then it's correctly created`() {
         val result = doCreate(CompositeSimpleListHolder::class, mapOf(
-                "prop[0].prop[0]" to 1,
-                "prop[0].prop[1]" to 2,
-                "prop[1].prop[0]" to "3"
+            "prop[0].prop[0]" to 1,
+            "prop[0].prop[1]" to 2,
+            "prop[1].prop[0]" to "3"
         ))
         assertThat(result).isEqualTo(CompositeSimpleListHolder(listOf(
-                SimpleTypeListHolder(listOf(1, 2)),
-                SimpleTypeListHolder(listOf(3))
+            SimpleTypeListHolder(listOf(1, 2)),
+            SimpleTypeListHolder(listOf(3))
         )))
     }
 
     @Test
     fun `when custom property name strategy is defined then it's respected`() {
         val input = mapOf(
-                "prop[0]-value" to '1',
-                "prop[1]-value" to "2"
+            "prop[0]-value" to '1',
+            "prop[1]-value" to "2"
         )
         val context = Context.builder {
             input[it]
@@ -328,10 +328,10 @@ internal class KotlinCreatorTest {
             }
         }.build()
         val actual = creator.create<NonSimpleTypeListHolder>(
-                "", NonSimpleTypeListHolder::class.createType(), context
+            "", NonSimpleTypeListHolder::class.createType(), context
         )
         assertThat(actual).isEqualTo(NonSimpleTypeListHolder(listOf(
-                ListElement(1), ListElement(2)
+            ListElement(1), ListElement(2)
         )))
     }
 
@@ -341,8 +341,8 @@ internal class KotlinCreatorTest {
         data class Composite(val first: Element, val second: Element)
 
         val input = mapOf(
-                "first" to "1",
-                "second" to "2"
+            "first" to "1",
+            "second" to "2"
         )
         val context = Context.builder {
             input[it]
@@ -363,8 +363,8 @@ internal class KotlinCreatorTest {
         data class Target(val queue: BlockingQueue<Int>)
 
         val input = mapOf(
-                "queue[0]" to "1",
-                "queue[1]" to "2"
+            "queue[0]" to "1",
+            "queue[1]" to "2"
         )
         val context = Context.builder {
             input[it]
@@ -383,15 +383,15 @@ internal class KotlinCreatorTest {
     @Test
     fun `when custom collection property name strategy is defined then it's respected`() {
         val input = mapOf(
-                "prop<1>.value" to "1",
-                "prop<2>.value" to "2"
+            "prop<1>.value" to "1",
+            "prop<2>.value" to "2"
         )
         val context = Context
-                .builder { input[it] }
-                .withCollectionElementPropertyNameStrategy { base, index -> "$base<${index + 1}>" }
-                .build()
+            .builder { input[it] }
+            .withCollectionElementPropertyNameStrategy { base, index -> "$base<${index + 1}>" }
+            .build()
         val actual = creator.create<NonSimpleTypeListHolder>(
-                "", NonSimpleTypeListHolder::class.createType(), context
+            "", NonSimpleTypeListHolder::class.createType(), context
         )
         assertThat(actual).isEqualTo(NonSimpleTypeListHolder(listOf(ListElement(1), ListElement(2))))
     }
@@ -399,49 +399,49 @@ internal class KotlinCreatorTest {
     @Test
     fun `when map property is declared then it's correctly populated`() {
         val input = mapOf(
-                "prop.FIRST.prop.SECOND" to "1",
-                "prop.SECOND.prop.FIRST" to "2",
-                "prop.SECOND.prop.SECOND" to "3"
+            "prop.FIRST.prop.SECOND" to "1",
+            "prop.SECOND.prop.FIRST" to "2",
+            "prop.SECOND.prop.SECOND" to "3"
         )
         val context = Context
-                .builder { input[it] }
-                .withTypeConverter(false, enumConverter(enumValues<Key>()))
-                .withMapKeyStrategy { _, type ->
-                    enumKeyProducer<Key>()(type)
-                }.build()
+            .builder { input[it] }
+            .withTypeConverter(false, enumConverter(enumValues<Key>()))
+            .withMapKeyStrategy { _, type ->
+                enumKeyProducer<Key>()(type)
+            }.build()
         val actual = creator.create<Any>("", CompositeMapHolder::class.createType(), context)
         assertThat(actual).isEqualTo(CompositeMapHolder(mapOf(
-                Key.FIRST to MapHolder(mapOf(Key.SECOND to 1)),
-                Key.SECOND to MapHolder(mapOf(Key.FIRST to 2, Key.SECOND to 3))
+            Key.FIRST to MapHolder(mapOf(Key.SECOND to 1)),
+            Key.SECOND to MapHolder(mapOf(Key.FIRST to 2, Key.SECOND to 3))
         )))
     }
 
     @Test
     fun `when map property is declared then map strategy receives correct property name`() {
         val input = mapOf(
-                "prop.FIRST.prop.SECOND" to "1",
-                "prop.SECOND.prop.FIRST" to "2",
-                "prop.SECOND.prop.SECOND" to "3"
+            "prop.FIRST.prop.SECOND" to "1",
+            "prop.SECOND.prop.FIRST" to "2",
+            "prop.SECOND.prop.SECOND" to "3"
         )
         val context = Context
-                .builder { input[it] }
-                .withTypeConverter(false, enumConverter(enumValues<Key>()))
-                .withMapKeyStrategy { propertyName, _ ->
-                    input.keys.filter {
-                        it.startsWith(propertyName)
-                    }.map {
-                        val i = it.indexOf(".", propertyName.length + 1)
-                        if (i <= 0) {
-                            it.substring(propertyName.length + 1)
-                        } else {
-                            it.substring(propertyName.length + 1, i)
-                        }
-                    }.toSet()
-                }.build()
+            .builder { input[it] }
+            .withTypeConverter(false, enumConverter(enumValues<Key>()))
+            .withMapKeyStrategy { propertyName, _ ->
+                input.keys.filter {
+                    it.startsWith(propertyName)
+                }.map {
+                    val i = it.indexOf(".", propertyName.length + 1)
+                    if (i <= 0) {
+                        it.substring(propertyName.length + 1)
+                    } else {
+                        it.substring(propertyName.length + 1, i)
+                    }
+                }.toSet()
+            }.build()
         val actual = creator.create<Any>("", CompositeMapHolder::class.createType(), context)
         assertThat(actual).isEqualTo(CompositeMapHolder(mapOf(
-                Key.FIRST to MapHolder(mapOf(Key.SECOND to 1)),
-                Key.SECOND to MapHolder(mapOf(Key.FIRST to 2, Key.SECOND to 3))
+            Key.FIRST to MapHolder(mapOf(Key.SECOND to 1)),
+            Key.SECOND to MapHolder(mapOf(Key.FIRST to 2, Key.SECOND to 3))
         )))
     }
 
@@ -450,19 +450,19 @@ internal class KotlinCreatorTest {
         data class Target(val data: Map<String, Any>)
 
         val input = mapOf(
-                "data.key1" to "value1",
-                "data.key2" to 2
+            "data.key1" to "value1",
+            "data.key2" to 2
         )
 
         val context = Context
-                .builder { input[it] }
-                .withMapKeyStrategy { _, _ ->
-                    setOf("key1", "key2")
-                }.build()
+            .builder { input[it] }
+            .withMapKeyStrategy { _, _ ->
+                setOf("key1", "key2")
+            }.build()
         val actual = creator.create<Target>("", Target::class.createType(), context)
         assertThat(actual.data).isEqualTo(mapOf(
-                "key1" to "value1",
-                "key2" to 2
+            "key1" to "value1",
+            "key2" to 2
         ))
     }
 
@@ -473,10 +473,10 @@ internal class KotlinCreatorTest {
         val input = mapOf("data.key1" to "value1")
 
         val context = Context
-                .builder { input[it] }
-                .withMapKeyStrategy { _, _ ->
-                    setOf("key1", "key2")
-                }.build()
+            .builder { input[it] }
+            .withMapKeyStrategy { _, _ ->
+                setOf("key1", "key2")
+            }.build()
         val actual = creator.create<Target>("", Target::class.createType(), context)
         assertThat(actual.data).isEqualTo(mapOf("key1" to "value1"))
     }
@@ -519,8 +519,8 @@ internal class KotlinCreatorTest {
         data class Target(val unit: TimeUnit, val day: DayOfWeek)
 
         val input = mapOf(
-                "unit" to TimeUnit.NANOSECONDS.name,
-                "day" to DayOfWeek.FRIDAY.name
+            "unit" to TimeUnit.NANOSECONDS.name,
+            "day" to DayOfWeek.FRIDAY.name
         )
         val actual = doCreate(Target::class, input)
         assertThat(actual).isEqualTo(Target(TimeUnit.NANOSECONDS, DayOfWeek.FRIDAY))
@@ -549,34 +549,34 @@ internal class KotlinCreatorTest {
     @Test
     fun `when nullable nested collection of simple type is used then it's correctly instantiated`() {
         val actual = doCreate(CompositeNullableCollectionListHolder::class, mapOf(
-                "data[0].prop[0]" to "1",
-                "data[0].prop[1]" to "2",
-                "data[1].prop[0]" to "3"
+            "data[0].prop[0]" to "1",
+            "data[0].prop[1]" to "2",
+            "data[1].prop[0]" to "3"
         ))
         assertThat(actual).isEqualTo(CompositeNullableCollectionListHolder(listOf(
-                NullableSimpleTypeListHolder(listOf(1, 2)),
-                NullableSimpleTypeListHolder(listOf(3))
+            NullableSimpleTypeListHolder(listOf(1, 2)),
+            NullableSimpleTypeListHolder(listOf(3))
         )))
     }
 
     @Test
     fun `when nullable nested collection of simple type with default value is used then it's correctly instantiated`() {
         val actual = doCreate(CompositeNullableCollectionWithDefaultValueListHolder::class, mapOf(
-                "data[0].prop[0]" to "1",
-                "data[0].prop[1]" to "2",
-                "data[1].prop[0]" to "3"
+            "data[0].prop[0]" to "1",
+            "data[0].prop[1]" to "2",
+            "data[1].prop[0]" to "3"
         ))
         assertThat(actual).isEqualTo(CompositeNullableCollectionWithDefaultValueListHolder(listOf(
-                NullableSimpleTypeListHolderWithDefaultValue(listOf(1, 2)),
-                NullableSimpleTypeListHolderWithDefaultValue(listOf(3))
+            NullableSimpleTypeListHolderWithDefaultValue(listOf(1, 2)),
+            NullableSimpleTypeListHolderWithDefaultValue(listOf(3))
         )))
     }
 
     @Test
     fun `when nullable nested collection of reference types is used and no data is available for it then null is used`() {
         val actual = doCreate(MixedHolderWithNullableCollection::class, mapOf(
-                "first" to "2",
-                "second" to "abc"
+            "first" to "2",
+            "second" to "abc"
         ))
         assertThat(actual).isEqualTo(MixedHolderWithNullableCollection(2, "abc", null))
     }
@@ -666,8 +666,8 @@ internal class KotlinCreatorTest {
         data class Target(val data: Any)
 
         val input = mapOf(
-                "data.one" to "1",
-                "data.two" to "2"
+            "data.one" to "1",
+            "data.two" to "2"
         )
         val actual = createWithMapKeys(Target::class, input)
         assertThat(actual).isEqualTo(Target(mapOf("one" to "1", "two" to "2")))
@@ -678,21 +678,21 @@ internal class KotlinCreatorTest {
         data class Target(val data: Any)
 
         val input = mapOf(
-                "data.one" to "1",
-                "data.two.one" to "2",
-                "data.two.two" to "3",
-                "data.three.one.one" to "4",
-                "data.three.one.two" to "5",
-                "data.three.two" to "6"
+            "data.one" to "1",
+            "data.two.one" to "2",
+            "data.two.two" to "3",
+            "data.three.one.one" to "4",
+            "data.three.one.two" to "5",
+            "data.three.two" to "6"
         )
         val actual = createWithMapKeys(Target::class, input)
         assertThat(actual).isEqualTo(Target(mapOf(
-                "one" to "1",
-                "two" to mapOf("one" to "2",
-                               "two" to "3"),
-                "three" to mapOf("one" to mapOf("one" to "4",
-                                                "two" to "5"),
-                                 "two" to "6")
+            "one" to "1",
+            "two" to mapOf("one" to "2",
+                "two" to "3"),
+            "three" to mapOf("one" to mapOf("one" to "4",
+                "two" to "5"),
+                "two" to "6")
         )))
     }
 
@@ -701,8 +701,8 @@ internal class KotlinCreatorTest {
         data class Target(val data: Any)
 
         val input = mapOf(
-                "data[0]" to "1",
-                "data[1]" to "2"
+            "data[0]" to "1",
+            "data[1]" to "2"
         )
         val actual = createWithMapKeys(Target::class, input)
         assertThat(actual).isEqualTo(Target(listOf("1", "2")))
@@ -713,14 +713,14 @@ internal class KotlinCreatorTest {
         data class Target(val data: Any)
 
         val input = mapOf(
-                "data[0].one" to "1",
-                "data[0].two" to "2",
-                "data[1]" to "3"
+            "data[0].one" to "1",
+            "data[0].two" to "2",
+            "data[1]" to "3"
         )
         val actual = createWithMapKeys(Target::class, input)
         assertThat(actual).isEqualTo(Target(listOf(mapOf("one" to "1",
-                                                         "two" to "2"),
-                                                   "3")))
+            "two" to "2"),
+            "3")))
     }
 
     @Test
@@ -728,18 +728,18 @@ internal class KotlinCreatorTest {
         data class Target(val data: Any)
 
         val input = mapOf(
-                "data.one[0].one" to "1",
-                "data.one[0].two" to "2",
-                "data.one[1]" to "3",
-                "data.two" to "4"
+            "data.one[0].one" to "1",
+            "data.one[0].two" to "2",
+            "data.one[1]" to "3",
+            "data.two" to "4"
         )
 
         val actual = createWithMapKeys(Target::class, input)
         assertThat(actual).isEqualTo(Target(mapOf(
-                "one" to listOf(mapOf("one" to "1",
-                                      "two" to "2"),
-                                "3"),
-                "two" to "4"
+            "one" to listOf(mapOf("one" to "1",
+                "two" to "2"),
+                "3"),
+            "two" to "4"
         )))
     }
 
@@ -748,8 +748,8 @@ internal class KotlinCreatorTest {
         data class Target(val data: Any)
 
         val input = mapOf(
-                "data.one[0]" to "1",
-                "data.one[1]" to "2"
+            "data.one[0]" to "1",
+            "data.one[1]" to "2"
         )
         val actual = createWithMapKeys(Target::class, input)
         assertThat(actual).isEqualTo(Target(mapOf("one" to listOf("1", "2"))))
@@ -814,6 +814,28 @@ internal class KotlinCreatorTest {
         )
     }
 
+    @Test
+    fun `when map's value is a map with keys of enum type then it's correctly picked up`() {
+        val actual = doCreate(
+            NestedMapHolder::class,
+            mapOf(
+                "prop.FIRST.FIRST.FIRST" to 1,
+                "prop.FIRST.FIRST.SECOND" to 2,
+                "prop.FIRST.SECOND.FIRST" to 3,
+                "prop.FIRST.SECOND.SECOND" to 4,
+                "prop.SECOND.SECOND.FIRST" to 5
+            )
+        )
+
+        assertThat(actual).isEqualTo(
+            NestedMapHolder(mapOf(
+                Key.FIRST to mapOf(
+                    Key.FIRST to mapOf(Key.FIRST to 1, Key.SECOND to 2),
+                    Key.SECOND to mapOf(Key.FIRST to 3, Key.SECOND to 4)),
+                Key.SECOND to mapOf(Key.SECOND to mapOf(Key.FIRST to 5))
+            )))
+    }
+
     private fun <T : Any> doCreate(klass: KClass<T>, data: Map<String, Any>): T {
         return creator.create("", klass.createType(), Context.builder { data[it] }.build())
     }
@@ -851,6 +873,8 @@ internal class KotlinCreatorTest {
     data class CompositeMapHolder(val prop: Map<Key, MapHolder>)
 
     data class MapWithCollectionValueHolder(val prop: Map<Key, List<ListElement>>)
+
+    data class NestedMapHolder(val prop: Map<Key, Map<Key, Map<Key, Int>>>)
 
     data class NullableListHolder(val e: ListElement, val s: Set<ListElement>?)
 
