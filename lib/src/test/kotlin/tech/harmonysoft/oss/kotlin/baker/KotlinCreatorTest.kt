@@ -815,7 +815,7 @@ internal class KotlinCreatorTest {
     }
 
     @Test
-    fun `when map's value is a map with keys of enum type then it's correctly picked up`() {
+    fun `when map's value is a map then it's correctly picked up`() {
         val actual = doCreate(
             NestedMapHolder::class,
             mapOf(
