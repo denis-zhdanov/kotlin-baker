@@ -69,7 +69,7 @@ class ParameterValueRetriever(val parameter: KParameter) {
         }
 
         if (Map::class.isSuperclassOf(klass)) {
-            return retrieveMap(propertyName, creator, context)
+            return retrieveMap(type, propertyName, creator, context)
         }
 
         return try {
@@ -256,6 +256,7 @@ class ParameterValueRetriever(val parameter: KParameter) {
     }
 
     private fun retrieveMap(
+            mapType: KType,
             propertyName: String,
             creator: KotlinCreator,
             context: Context
@@ -268,13 +269,13 @@ class ParameterValueRetriever(val parameter: KParameter) {
             )
         }
 
-        val keyType = parameter.type.arguments[0].type ?: throw IllegalArgumentException(
+        val keyType = mapType.arguments[0].type ?: throw IllegalArgumentException(
                 "Failed instantiating a Map property '$propertyName' - no key type info is available for $parameter"
         )
         val keyClass = keyType.classifier as? KClass<*> ?: throw IllegalArgumentException(
                 "Failed instantiating a Map property '$propertyName' - can't derive key class for $parameter"
         )
-        val valueType = parameter.type.arguments[1].type ?: throw IllegalArgumentException(
+        val valueType = mapType.arguments[1].type ?: throw IllegalArgumentException(
                 "Failed instantiating a Map property '$propertyName' - no value type info is available for $parameter"
         )
         val valueClass = valueType.classifier as? KClass<*> ?: throw IllegalArgumentException(
