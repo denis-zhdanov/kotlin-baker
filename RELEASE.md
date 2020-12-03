@@ -6,6 +6,9 @@ https://repo1.maven.org/maven2/tech/harmonysoft/kotlin-baker/
 
 https://repo.jfrog.org/artifactory/libs-release-bintray/tech/harmonysoft/kotlin-baker/
 
+**v.1.0.11**
+* [IllegalArgumentException when retrieving a parameter of type Map<T, Collection<E>>](https://github.com/denis-zhdanov/kotlin-baker/issues/23)
+
 **v.1.0.10**
 * [Allow using nullable enum properties in collection objects](https://github.com/denis-zhdanov/kotlin-baker/issues/20)
 

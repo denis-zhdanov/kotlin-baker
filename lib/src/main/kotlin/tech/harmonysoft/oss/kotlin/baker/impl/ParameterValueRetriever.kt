@@ -65,7 +65,7 @@ class ParameterValueRetriever(val parameter: KParameter) {
         }
 
         if (context.isCollection(klass)) {
-            return retrieveCollection(klass, propertyName, creator, context)
+            return retrieveCollection(klass, type, propertyName, creator, context)
         }
 
         if (Map::class.isSuperclassOf(klass)) {
@@ -164,6 +164,7 @@ class ParameterValueRetriever(val parameter: KParameter) {
 
     private fun retrieveCollection(
             collectionClass: KClass<*>,
+            collectionType: KType,
             propertyName: String,
             creator: KotlinCreator,
             context: Context
@@ -176,7 +177,7 @@ class ParameterValueRetriever(val parameter: KParameter) {
             )
         }
 
-        val typeArguments = parameter.type.arguments
+        val typeArguments = collectionType.arguments
         if (typeArguments.size != 1) {
             throw IllegalArgumentException(
                     "Failed retrieving value of a '${parameter.type}' property for path '$propertyName' - expected "
