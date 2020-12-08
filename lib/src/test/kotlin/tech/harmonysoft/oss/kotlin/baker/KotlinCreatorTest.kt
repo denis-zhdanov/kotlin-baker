@@ -814,6 +814,28 @@ internal class KotlinCreatorTest {
         )
     }
 
+    @Test
+    fun `when map's value is a map then it's correctly picked up`() {
+        val actual = doCreate(
+            NestedMapHolder::class,
+            mapOf(
+                "prop.FIRST.FIRST.FIRST" to 1,
+                "prop.FIRST.FIRST.SECOND" to 2,
+                "prop.FIRST.SECOND.FIRST" to 3,
+                "prop.FIRST.SECOND.SECOND" to 4,
+                "prop.SECOND.SECOND.FIRST" to 5
+            )
+        )
+
+        assertThat(actual).isEqualTo(
+            NestedMapHolder(mapOf(
+                Key.FIRST to mapOf(
+                    Key.FIRST to mapOf(Key.FIRST to 1, Key.SECOND to 2),
+                    Key.SECOND to mapOf(Key.FIRST to 3, Key.SECOND to 4)),
+                Key.SECOND to mapOf(Key.SECOND to mapOf(Key.FIRST to 5))
+            )))
+    }
+
     private fun <T : Any> doCreate(klass: KClass<T>, data: Map<String, Any>): T {
         return creator.create("", klass.createType(), Context.builder { data[it] }.build())
     }
@@ -851,6 +873,8 @@ internal class KotlinCreatorTest {
     data class CompositeMapHolder(val prop: Map<Key, MapHolder>)
 
     data class MapWithCollectionValueHolder(val prop: Map<Key, List<ListElement>>)
+
+    data class NestedMapHolder(val prop: Map<Key, Map<Key, Map<Key, Int>>>)
 
     data class NullableListHolder(val e: ListElement, val s: Set<ListElement>?)
 
