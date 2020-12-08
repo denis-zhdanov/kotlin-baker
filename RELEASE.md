@@ -6,6 +6,9 @@ https://repo1.maven.org/maven2/tech/harmonysoft/kotlin-baker/
 
 https://repo.jfrog.org/artifactory/libs-release-bintray/tech/harmonysoft/kotlin-baker/
 
+**v.1.0.12**
+* [Allow to create types with properties of map type where keys are also map](https://github.com/denis-zhdanov/kotlin-baker/issues/25)
+
 **v.1.0.11**
 * [IllegalArgumentException when retrieving a parameter of type Map<T, Collection<E>>](https://github.com/denis-zhdanov/kotlin-baker/issues/23)
 
