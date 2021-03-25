@@ -744,6 +744,39 @@ internal class KotlinCreatorTest {
     }
 
     @Test
+    fun `when Map of nested map and list is used as a type Map then it's correctly pick up`() {
+        data class Target(val parameters: Map<String, Any>)
+
+        val input = mapOf(
+                "parameters.map1.list1[0].When.Or[0].value1" to "ABC",
+                "parameters.map1.list1[0].When.Or[1].value1" to "XYZ",
+                "parameters.map1.list1[0].Then" to "123456"
+        )
+
+        val context = Context.builder {
+            input[it]
+        }.withMapKeyStrategy { s, t ->
+            setOf("map1", "list1", "When", "Then", "Or", "value1")
+        }.build()
+        val actual = creator.create<Target>("", Target::class.createType(), context)
+        assertThat(actual).isEqualTo(Target(mapOf(
+               "map1" to mapOf(
+                       "list1" to listOf(
+                               mapOf(
+                                       "When" to mapOf(
+                                               "Or" to listOf(
+                                                       mapOf("value1" to "ABC"),
+                                                       mapOf("value1" to "XYZ")
+                                               )
+                                       ),
+                                       "Then" to "123456"
+                               )
+                       )
+               )
+        )))
+    }
+
+    @Test
     fun `when Map with List value is used as a type Any then it's correctly picked up`() {
         data class Target(val data: Any)
 
