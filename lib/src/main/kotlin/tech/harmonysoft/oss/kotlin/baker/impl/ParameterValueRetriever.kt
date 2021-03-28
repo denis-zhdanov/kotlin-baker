@@ -130,7 +130,7 @@ class ParameterValueRetriever(val parameter: KParameter) {
                 }
             }
             return keys.any {
-                isMapLike(it, context)
+                isMapLike(it, context) || isCollectionLike(it, context)
             }
         } finally {
             remainingDepth.incrementAndGet()
