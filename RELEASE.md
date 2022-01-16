@@ -6,6 +6,9 @@ https://repo1.maven.org/maven2/tech/harmonysoft/kotlin-baker/
 
 https://repo.jfrog.org/artifactory/libs-release-bintray/tech/harmonysoft/kotlin-baker/
 
+**v.1.0.13**
+* [support nested list in nested map](https://github.com/denis-zhdanov/kotlin-baker/pull/28)
+
 **v.1.0.12**
 * [Allow to create types with properties of map type where keys are also map](https://github.com/denis-zhdanov/kotlin-baker/issues/25)
 
